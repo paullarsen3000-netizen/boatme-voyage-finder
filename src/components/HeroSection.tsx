@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { MapPin, Search } from "lucide-react"
+import { MapPin, Search, Anchor } from "lucide-react"
 
 export function HeroSection() {
   return (
@@ -11,14 +11,26 @@ export function HeroSection() {
       </div>
 
       <div className="container mx-auto px-4 text-center relative z-10">
+        {/* Brand Logo Prominence */}
+        <div className="mb-8">
+          <div className="flex items-center justify-center space-x-4 mb-4">
+            <div className="relative">
+              <Anchor className="h-16 w-16 text-white/90 stroke-[1.5]" />
+              <div className="absolute -top-2 -right-2 w-5 h-5 bg-accent rounded-full border-3 border-white/20" />
+            </div>
+            <h1 className="text-4xl md:text-6xl font-brand font-bold text-white tracking-wide">BoatMe</h1>
+          </div>
+          <p className="text-lg md:text-xl text-white/80 font-medium">South Africa's Premier Boating Platform</p>
+        </div>
+
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+          <h2 className="text-4xl md:text-6xl font-brand font-bold mb-6 leading-tight text-white">
             Find Your Perfect
-            <span className="block text-accent">Boating Experience</span>
-          </h1>
+            <span className="block text-accent font-brand">Boating Experience</span>
+          </h2>
           
-          <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-2xl mx-auto">
-            Discover skipper courses, rent boats, or list your vessel on South Africa's premier boating platform
+          <p className="text-xl md:text-2xl mb-8 text-white/90 max-w-2xl mx-auto font-body">
+            Discover skipper courses, rent boats, or list your vessel with confidence
           </p>
 
           {/* Search Bar */}

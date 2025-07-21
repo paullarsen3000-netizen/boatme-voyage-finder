@@ -10,12 +10,12 @@ export function Header() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <div className="relative">
-              <Anchor className="h-8 w-8 text-primary" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-background" />
+              <Anchor className="h-10 w-10 text-primary stroke-[1.5]" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full border-2 border-background" />
             </div>
-            <span className="text-xl font-bold text-primary tracking-wide">BoatMe</span>
+            <span className="text-2xl font-brand font-bold text-primary tracking-wide">BoatMe</span>
           </div>
 
           {/* Desktop Navigation */}
