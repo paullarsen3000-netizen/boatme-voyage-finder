@@ -1,8 +1,22 @@
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { MapPin, Search, Anchor } from "lucide-react"
+import { Search, Anchor, Users } from "lucide-react"
+import { UniversalSearchBar } from "@/components/search/UniversalSearchBar"
+import { useNavigate } from "react-router-dom"
 
 export function HeroSection() {
+  const navigate = useNavigate();
+
+  const handleSearch = (query: string, location?: { lat: number; lng: number }) => {
+    // Navigate to boat rentals with search params
+    const searchParams = new URLSearchParams();
+    searchParams.set('q', query);
+    if (location) {
+      searchParams.set('lat', location.lat.toString());
+      searchParams.set('lng', location.lng.toString());
+    }
+    navigate(`/rent?${searchParams.toString()}`);
+  };
+
   return (
     <section className="relative min-h-[80vh] flex items-center justify-center bg-hero-gradient text-white overflow-hidden">
       {/* Background Pattern */}
@@ -35,19 +49,11 @@ export function HeroSection() {
 
           {/* Search Bar */}
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 mb-8 max-w-3xl mx-auto shadow-xl">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-                <Input 
-                  placeholder="Where do you want to boat? (e.g., Cape Town, Knysna, Vaal Dam)"
-                  className="pl-10 h-12 text-foreground placeholder:text-muted-foreground"
-                />
-              </div>
-              <Button size="lg" className="h-12 px-8 bg-primary hover:bg-primary/90">
-                <Search className="h-5 w-5 mr-2" />
-                Search
-              </Button>
-            </div>
+            <UniversalSearchBar
+              placeholder="Where do you want to boat? (e.g., Cape Town, Knysna, Vaal Dam)"
+              onSearch={handleSearch}
+              className="h-12"
+            />
           </div>
 
           {/* CTA Buttons */}
