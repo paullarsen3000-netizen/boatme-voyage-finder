@@ -39,9 +39,9 @@ export function Header() {
               Skipper Courses
             </Link>
             <Link 
-              to="/list-boat" 
+              to="/owner/register" 
               className={`text-foreground hover:text-primary transition-colors ${
-                location.pathname === '/list-boat' ? 'text-primary font-medium' : ''
+                location.pathname.startsWith('/owner') ? 'text-primary font-medium' : ''
               }`}
             >
               List Your Boat
@@ -94,9 +94,9 @@ export function Header() {
               Skipper Courses
             </Link>
             <Link 
-              to="/list-boat" 
+              to="/owner/register" 
               className={`block text-foreground hover:text-primary transition-colors ${
-                location.pathname === '/list-boat' ? 'text-primary font-medium' : ''
+                location.pathname.startsWith('/owner') ? 'text-primary font-medium' : ''
               }`}
               onClick={() => setIsMenuOpen(false)}
             >

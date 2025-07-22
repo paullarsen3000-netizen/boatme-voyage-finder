@@ -8,6 +8,11 @@ import BoatRentals from "./pages/BoatRentals";
 import BoatDetails from "./pages/BoatDetails";
 import SkipperCourses from "./pages/SkipperCourses";
 import SkipperCourseDetails from "./pages/SkipperCourseDetails";
+import OwnerRegister from "./pages/owner/OwnerRegister";
+import OwnerDashboard from "./pages/owner/OwnerDashboard";
+import OwnerBoats from "./pages/owner/OwnerBoats";
+import OwnerBookings from "./pages/owner/OwnerBookings";
+import OwnerDocuments from "./pages/owner/OwnerDocuments";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +29,11 @@ const App = () => (
           <Route path="/boats/:id" element={<BoatDetails />} />
           <Route path="/skipper-courses" element={<SkipperCourses />} />
           <Route path="/skippers/:id" element={<SkipperCourseDetails />} />
+          <Route path="/owner/register" element={<OwnerRegister />} />
+          <Route path="/owner/dashboard" element={<OwnerDashboard />} />
+          <Route path="/owner/boats" element={<OwnerBoats />} />
+          <Route path="/owner/bookings" element={<OwnerBookings />} />
+          <Route path="/owner/documents" element={<OwnerDocuments />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
