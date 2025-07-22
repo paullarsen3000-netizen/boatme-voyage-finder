@@ -98,9 +98,9 @@ export default function SkipperCourses() {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.location.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesProvince = !selectedProvince || course.province === selectedProvince
-    const matchesCategory = !selectedCategory || course.category === selectedCategory
-    const matchesPrice = !priceRange || 
+    const matchesProvince = !selectedProvince || selectedProvince === "all-provinces" || course.province === selectedProvince
+    const matchesCategory = !selectedCategory || selectedCategory === "all-categories" || course.category === selectedCategory
+    const matchesPrice = !priceRange || priceRange === "any-price" ||
       (priceRange === "under-3000" && course.price < 3000) ||
       (priceRange === "3000-5000" && course.price >= 3000 && course.price <= 5000) ||
       (priceRange === "5000-8000" && course.price >= 5000 && course.price <= 8000) ||
@@ -141,7 +141,7 @@ export default function SkipperCourses() {
                 <SelectValue placeholder="Province" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Provinces</SelectItem>
+                <SelectItem value="all-provinces">All Provinces</SelectItem>
                 {provinces.map(province => (
                   <SelectItem key={province} value={province}>{province}</SelectItem>
                 ))}
@@ -153,7 +153,7 @@ export default function SkipperCourses() {
                 <SelectValue placeholder="License Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="all-categories">All Categories</SelectItem>
                 {categories.map(cat => (
                   <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
                 ))}
@@ -165,7 +165,7 @@ export default function SkipperCourses() {
                 <SelectValue placeholder="Price Range" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any Price</SelectItem>
+                <SelectItem value="any-price">Any Price</SelectItem>
                 <SelectItem value="under-3000">Under R3,000</SelectItem>
                 <SelectItem value="3000-5000">R3,000 - R5,000</SelectItem>
                 <SelectItem value="5000-8000">R5,000 - R8,000</SelectItem>
