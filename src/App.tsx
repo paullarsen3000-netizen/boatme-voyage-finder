@@ -26,6 +26,9 @@ import OwnerPayoutSettings from "./pages/owner/OwnerPayoutSettings";
 import OwnerAnalytics from "./pages/owner/OwnerAnalytics";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminPayouts from "./pages/admin/AdminPayouts";
+import OwnerReviews from "./pages/owner/OwnerReviews";
+import ReviewSubmission from "./pages/ReviewSubmission";
+import AdminReviews from "./pages/admin/AdminReviews";
 import CourseProviderAnalytics from "./pages/CourseProviderAnalytics";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/auth/Login";
@@ -124,10 +127,21 @@ const App = () => (
                 <OwnerPayoutSettings />
               </ProtectedRoute>
             } />
+            <Route path="/owner/reviews" element={
+              <ProtectedRoute requireOwner>
+                <OwnerReviews />
+              </ProtectedRoute>
+            } />
+            <Route path="/reviews/new/:bookingId" element={
+              <ProtectedRoute>
+                <ReviewSubmission />
+              </ProtectedRoute>
+            } />
             
           {/* Admin Routes */}
           <Route path="/admin/analytics" element={<AdminAnalytics />} />
           <Route path="/admin/payouts" element={<AdminPayouts />} />
+          <Route path="/admin/reviews" element={<AdminReviews />} />
             
             {/* Course Provider Routes */}
             <Route path="/provider/analytics" element={<CourseProviderAnalytics />} />

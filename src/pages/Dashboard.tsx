@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate, Link } from 'react-router-dom';
-import { Calendar, MapPin, Ship, GraduationCap, Settings, LogOut, Mail, BarChart3 } from 'lucide-react';
+import { Calendar, MapPin, Ship, GraduationCap, Settings, LogOut, Mail, BarChart3, Star, CreditCard } from 'lucide-react';
 import { EmailSettings } from '@/components/EmailSettings';
 import { useEmailTriggers } from '@/hooks/useEmailTriggers';
 import { useState } from 'react';
@@ -270,6 +270,24 @@ export default function Dashboard() {
                         <BarChart3 className="h-6 w-6 mb-2" />
                         <span className="font-medium">Platform Analytics</span>
                         <span className="text-sm text-muted-foreground">View platform insights</span>
+                      </Button>
+                      <Button 
+                        className="h-auto p-4 flex flex-col items-start" 
+                        variant="outline"
+                        onClick={() => navigate('/admin/payouts')}
+                      >
+                        <CreditCard className="h-6 w-6 mb-2" />
+                        <span className="font-medium">Manage Payouts</span>
+                        <span className="text-sm text-muted-foreground">Handle platform payouts</span>
+                      </Button>
+                      <Button 
+                        className="h-auto p-4 flex flex-col items-start" 
+                        variant="outline"
+                        onClick={() => navigate('/admin/reviews')}
+                      >
+                        <Star className="h-6 w-6 mb-2" />
+                        <span className="font-medium">Review Management</span>
+                        <span className="text-sm text-muted-foreground">Moderate customer reviews</span>
                       </Button>
                       <Button 
                         className="h-auto p-4 flex flex-col items-start" 

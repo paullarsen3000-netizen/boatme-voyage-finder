@@ -15,7 +15,8 @@ import {
   MapPin,
   BarChart3,
   Banknote,
-  DollarSign
+  DollarSign,
+  Star
 } from "lucide-react"
 import { Link } from "react-router-dom"
 import { Header } from "@/components/Header"
@@ -313,6 +314,12 @@ export default function OwnerDashboard() {
                   <Button variant="outline" className="w-full justify-start">
                     <FileCheck className="w-4 h-4 mr-2" />
                     Update Documents
+                  </Button>
+                </Link>
+                <Link to="/owner/reviews" className="block">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Star className="w-4 h-4 mr-2" />
+                    Manage Reviews
                   </Button>
                 </Link>
               </CardContent>
