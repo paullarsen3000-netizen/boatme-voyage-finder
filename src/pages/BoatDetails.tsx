@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
+import { SEOSchema } from "@/utils/seoSchema"
 import { 
   ArrowLeft, 
   Star, 
@@ -116,8 +117,29 @@ export default function BoatDetails() {
     )
   }
 
+  // SEO Schema data
+  const seoData = {
+    name: boat.name,
+    description: boat.description,
+    image: boat.images[0],
+    averageRating: boat.rating,
+    reviewCount: boat.reviewCount,
+    reviews: boat.reviews.map(review => ({
+      author: review.author,
+      rating: review.rating,
+      reviewText: review.comment,
+      datePublished: review.date
+    })),
+    offers: {
+      price: boat.pricePerDay,
+      currency: 'ZAR',
+      availability: 'InStock'
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      <SEOSchema data={seoData} type="product" />
       {/* Back Navigation */}
       <div className="border-b bg-background/95 backdrop-blur-md sticky top-16 z-40">
         <div className="container mx-auto px-4 py-4">
