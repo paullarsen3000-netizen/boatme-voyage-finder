@@ -14,13 +14,107 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cancellations: {
+        Row: {
+          booking_id: string
+          cancellation_reason: string
+          cancelled_by: string
+          cancelled_by_role: string
+          created_at: string
+          id: string
+          reason_comments: string | null
+          refund_eligible: boolean | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          booking_id: string
+          cancellation_reason: string
+          cancelled_by: string
+          cancelled_by_role: string
+          created_at?: string
+          id?: string
+          reason_comments?: string | null
+          refund_eligible?: boolean | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string
+          cancellation_reason?: string
+          cancelled_by?: string
+          cancelled_by_role?: string
+          created_at?: string
+          id?: string
+          reason_comments?: string | null
+          refund_eligible?: boolean | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      disputes: {
+        Row: {
+          admin_notes: string | null
+          booking_id: string
+          cancellation_id: string
+          created_at: string
+          dispute_reason: string
+          evidence_urls: string[] | null
+          id: string
+          initiated_by: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          booking_id: string
+          cancellation_id: string
+          created_at?: string
+          dispute_reason: string
+          evidence_urls?: string[] | null
+          id?: string
+          initiated_by: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          booking_id?: string
+          cancellation_id?: string
+          created_at?: string
+          dispute_reason?: string
+          evidence_urls?: string[] | null
+          id?: string
+          initiated_by?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disputes_cancellation_id_fkey"
+            columns: ["cancellation_id"]
+            isOneToOne: false
+            referencedRelation: "cancellations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
