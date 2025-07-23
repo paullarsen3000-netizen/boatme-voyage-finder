@@ -29,6 +29,7 @@ import AdminPayouts from "./pages/admin/AdminPayouts";
 import OwnerReviews from "./pages/owner/OwnerReviews";
 import ReviewSubmission from "./pages/ReviewSubmission";
 import AdminReviews from "./pages/admin/AdminReviews";
+import AdminDisputes from "./pages/admin/AdminDisputes";
 import CourseProviderAnalytics from "./pages/CourseProviderAnalytics";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/auth/Login";
@@ -142,6 +143,7 @@ const App = () => (
           <Route path="/admin/analytics" element={<AdminAnalytics />} />
           <Route path="/admin/payouts" element={<AdminPayouts />} />
           <Route path="/admin/reviews" element={<AdminReviews />} />
+          <Route path="/admin/disputes" element={<AdminDisputes />} />
             
             {/* Course Provider Routes */}
             <Route path="/provider/analytics" element={<CourseProviderAnalytics />} />
