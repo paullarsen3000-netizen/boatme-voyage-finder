@@ -71,19 +71,52 @@ class EmailScheduler {
     }
   }
 
-  // Process pending scheduled emails (would typically run as a cron job)
-  async processPendingEmails(): Promise<void> {
-    try {
-      const scheduledEmails: ScheduledEmail[] = JSON.parse(localStorage.getItem('scheduled_emails') || '[]');
-      const now = new Date();
+  // Schedule review reminder email (24h after booking completion)
+  scheduleReviewReminderEmail(booking: Booking, recipientEmail: string, userName: string) {
+    // Calculate 24 hours after booking end date
+    const reminderDate = new Date(booking.endDate);
+    reminderDate.setHours(reminderDate.getHours() + 24);
 
-      for (const email of scheduledEmails) {
-        if (email.status === 'pending' && new Date(email.scheduled_for) <= now) {
-          const success = await this.sendScheduledEmail(email);
-          
-          // Update status
-          email.status = success ? 'sent' : 'failed';
-        }
+    const job: EmailJob = {
+      id: `review_reminder_${booking.id}_${Date.now()}`,
+      type: 'review_reminder',
+      scheduledFor: reminderDate,
+      recipient: recipientEmail,
+      data: { booking, userName },
+      status: 'pending',
+      attempts: 0
+    };
+
+    this.jobs.push(job);
+    console.log(`Review reminder email scheduled for ${reminderDate.toISOString()}`);
+  }
+
+  // Cancel review reminder if review is submitted
+  cancelReviewReminder(bookingId: string) {
+    this.jobs = this.jobs.map(job => {
+      if (job.type === 'review_reminder' && 
+          job.data.booking?.id === bookingId && 
+          job.status === 'pending') {
+        return { ...job, status: 'cancelled' as const };
+      }
+      return job;
+    });
+  }
+
+  // Check if booking is eligible for review reminder
+  private isEligibleForReviewReminder(booking: Booking): boolean {
+    // Only send reminders for completed bookings
+    if (booking.status !== 'completed') return false;
+    
+    // Don't send reminders for bookings older than 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    if (new Date(booking.endDate) < thirtyDaysAgo) return false;
+    
+    // TODO: Check if review already submitted (would need review data)
+    // For now, assume we can proceed
+    return true;
+  }
       }
 
       // Save updated scheduled emails
