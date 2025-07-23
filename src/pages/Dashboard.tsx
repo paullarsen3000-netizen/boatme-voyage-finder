@@ -2,7 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Calendar, MapPin, Ship, GraduationCap, Settings, LogOut, Mail } from 'lucide-react';
 import { EmailSettings } from '@/components/EmailSettings';
 import { useEmailTriggers } from '@/hooks/useEmailTriggers';
@@ -61,32 +61,36 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <Calendar className="h-8 w-8 text-green-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-muted-foreground">This Month Earnings</p>
-                      <div className="flex items-center">
-                        <span className="text-2xl font-bold">R12,450</span>
+              <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                <Link to="/owner/earnings" className="block">
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <Calendar className="h-8 w-8 text-green-600" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-muted-foreground">This Month Earnings</p>
+                        <div className="flex items-center">
+                          <span className="text-2xl font-bold">R12,450</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
+                  </CardContent>
+                </Link>
               </Card>
 
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <MapPin className="h-8 w-8 text-blue-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-muted-foreground">Pending Bookings</p>
-                      <div className="flex items-center">
-                        <span className="text-2xl font-bold">5</span>
+              <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                <Link to="/owner/earnings" className="block">
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <MapPin className="h-8 w-8 text-blue-600" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-muted-foreground">Pending Bookings</p>
+                        <div className="flex items-center">
+                          <span className="text-2xl font-bold">5</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
+                  </CardContent>
+                </Link>
               </Card>
 
               <Card>
@@ -106,32 +110,36 @@ export default function Dashboard() {
           ) : (
             <>
               {/* Renter Stats */}
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <Calendar className="h-8 w-8 text-primary" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-muted-foreground">Upcoming Trips</p>
-                      <div className="flex items-center">
-                        <span className="text-2xl font-bold">2</span>
+              <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                <Link to="/dashboard/bookings" className="block">
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <Calendar className="h-8 w-8 text-primary" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-muted-foreground">Upcoming Trips</p>
+                        <div className="flex items-center">
+                          <span className="text-2xl font-bold">2</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
+                  </CardContent>
+                </Link>
               </Card>
 
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <Ship className="h-8 w-8 text-blue-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
-                      <div className="flex items-center">
-                        <span className="text-2xl font-bold">7</span>
+              <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                <Link to="/dashboard/bookings" className="block">
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <Ship className="h-8 w-8 text-blue-600" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
+                        <div className="flex items-center">
+                          <span className="text-2xl font-bold">7</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
+                  </CardContent>
+                </Link>
               </Card>
 
               <Card>

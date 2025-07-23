@@ -19,6 +19,8 @@ import OwnerDocuments from "./pages/owner/OwnerDocuments";
 import Checkout from "./pages/Checkout";
 import Confirmation from "./pages/Confirmation";
 import ReceiptView from "./pages/ReceiptView";
+import BookingHistory from "./pages/BookingHistory";
+import OwnerEarnings from "./pages/owner/OwnerEarnings";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
@@ -68,6 +70,11 @@ const App = () => (
                 <ReceiptView />
               </ProtectedRoute>
             } />
+            <Route path="/dashboard/bookings" element={
+              <ProtectedRoute>
+                <BookingHistory />
+              </ProtectedRoute>
+            } />
             
             {/* Owner Protected Routes */}
             <Route path="/owner/register" element={<OwnerRegister />} />
@@ -89,6 +96,11 @@ const App = () => (
             <Route path="/owner/documents" element={
               <ProtectedRoute requireOwner>
                 <OwnerDocuments />
+              </ProtectedRoute>
+            } />
+            <Route path="/owner/earnings" element={
+              <ProtectedRoute requireOwner>
+                <OwnerEarnings />
               </ProtectedRoute>
             } />
             
