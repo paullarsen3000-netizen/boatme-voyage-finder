@@ -39,93 +39,291 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Dashboard Stats Cards */}
+          {isOwner ? (
+            <>
+              {/* Owner Stats */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Ship className="h-8 w-8 text-primary" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-muted-foreground">Active Listings</p>
+                      <div className="flex items-center">
+                        <span className="text-2xl font-bold">3</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Calendar className="h-8 w-8 text-green-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-muted-foreground">This Month Earnings</p>
+                      <div className="flex items-center">
+                        <span className="text-2xl font-bold">R12,450</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <MapPin className="h-8 w-8 text-blue-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-muted-foreground">Pending Bookings</p>
+                      <div className="flex items-center">
+                        <span className="text-2xl font-bold">5</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Settings className="h-8 w-8 text-orange-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-muted-foreground">Documents Status</p>
+                      <div className="flex items-center">
+                        <span className="text-sm text-orange-600 font-medium">2 Pending</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <>
+              {/* Renter Stats */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Calendar className="h-8 w-8 text-primary" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-muted-foreground">Upcoming Trips</p>
+                      <div className="flex items-center">
+                        <span className="text-2xl font-bold">2</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Ship className="h-8 w-8 text-blue-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
+                      <div className="flex items-center">
+                        <span className="text-2xl font-bold">7</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <GraduationCap className="h-8 w-8 text-green-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-muted-foreground">Courses Completed</p>
+                      <div className="flex items-center">
+                        <span className="text-2xl font-bold">1</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <MapPin className="h-8 w-8 text-purple-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-muted-foreground">Favorite Locations</p>
+                      <div className="flex items-center">
+                        <span className="text-2xl font-bold">4</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
           {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-            <CardTitle className="flex items-center">
-                <Ship className="mr-2 h-5 w-5" />
-                Boat Rentals
-              </CardTitle>
-              <CardDescription>
-                Find and book boats for your next adventure
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                onClick={() => navigate('/rent')}
-              >
-                Browse Boats
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <GraduationCap className="mr-2 h-5 w-5" />
-                Skipper Courses
-              </CardTitle>
-              <CardDescription>
-                Learn to navigate waters safely with certified instructors
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                onClick={() => navigate('/skipper-courses')}
-              >
-                View Courses
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Owner Dashboard Access */}
-          {isOwner && (
+          <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Settings className="mr-2 h-5 w-5" />
-                  Owner Dashboard
-                </CardTitle>
+                <CardTitle>Quick Actions</CardTitle>
                 <CardDescription>
-                  Manage your boats and bookings
+                  {isOwner ? 'Manage your business' : 'Explore and book'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button 
-                  className="w-full" 
-                  onClick={() => navigate('/owner/dashboard')}
-                >
-                  Manage Listings
-                </Button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {isOwner ? (
+                    <>
+                      <Button 
+                        className="h-auto p-4 flex flex-col items-start" 
+                        variant="outline"
+                        onClick={() => navigate('/owner/boats')}
+                      >
+                        <Ship className="h-6 w-6 mb-2" />
+                        <span className="font-medium">Add New Boat</span>
+                        <span className="text-sm text-muted-foreground">List a new boat for rent</span>
+                      </Button>
+                      <Button 
+                        className="h-auto p-4 flex flex-col items-start" 
+                        variant="outline"
+                        onClick={() => navigate('/owner/bookings')}
+                      >
+                        <Calendar className="h-6 w-6 mb-2" />
+                        <span className="font-medium">Manage Bookings</span>
+                        <span className="text-sm text-muted-foreground">View and respond to requests</span>
+                      </Button>
+                      <Button 
+                        className="h-auto p-4 flex flex-col items-start" 
+                        variant="outline"
+                        onClick={() => navigate('/owner/documents')}
+                      >
+                        <Settings className="h-6 w-6 mb-2" />
+                        <span className="font-medium">Complete KYC</span>
+                        <span className="text-sm text-muted-foreground">Upload required documents</span>
+                      </Button>
+                      <Button 
+                        className="h-auto p-4 flex flex-col items-start" 
+                        variant="outline"
+                        onClick={() => navigate('/owner/dashboard')}
+                      >
+                        <GraduationCap className="h-6 w-6 mb-2" />
+                        <span className="font-medium">Owner Dashboard</span>
+                        <span className="text-sm text-muted-foreground">Full business overview</span>
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button 
+                        className="h-auto p-4 flex flex-col items-start" 
+                        variant="outline"
+                        onClick={() => navigate('/rent')}
+                      >
+                        <Ship className="h-6 w-6 mb-2" />
+                        <span className="font-medium">Browse Boats</span>
+                        <span className="text-sm text-muted-foreground">Find your next adventure</span>
+                      </Button>
+                      <Button 
+                        className="h-auto p-4 flex flex-col items-start" 
+                        variant="outline"
+                        onClick={() => navigate('/skipper-courses')}
+                      >
+                        <GraduationCap className="h-6 w-6 mb-2" />
+                        <span className="font-medium">Skipper Courses</span>
+                        <span className="text-sm text-muted-foreground">Learn to navigate safely</span>
+                      </Button>
+                      <Button 
+                        className="h-auto p-4 flex flex-col items-start" 
+                        variant="outline"
+                        onClick={() => navigate('/search')}
+                      >
+                        <MapPin className="h-6 w-6 mb-2" />
+                        <span className="font-medium">Search Locations</span>
+                        <span className="text-sm text-muted-foreground">Discover new destinations</span>
+                      </Button>
+                      <Button 
+                        className="h-auto p-4 flex flex-col items-start" 
+                        variant="outline"
+                        onClick={() => navigate('/owner/register')}
+                      >
+                        <Settings className="h-6 w-6 mb-2" />
+                        <span className="font-medium">Become an Owner</span>
+                        <span className="text-sm text-muted-foreground">Start earning with your boat</span>
+                      </Button>
+                    </>
+                  )}
+                </div>
               </CardContent>
             </Card>
-          )}
+          </div>
 
-          {/* Recent Activity */}
-          <Card className="md:col-span-2 lg:col-span-3">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Calendar className="mr-2 h-5 w-5" />
-                Recent Activity
-              </CardTitle>
-              <CardDescription>
-                Your latest bookings and activity
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No recent activity</p>
-                <p className="text-sm">Start by booking a boat or enrolling in a course!</p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Notifications */}
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Notifications</CardTitle>
+                <CardDescription>Recent updates and alerts</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {isOwner ? (
+                    <>
+                      <div className="flex items-start space-x-3 p-3 rounded-lg bg-orange-50 border border-orange-200">
+                        <Settings className="h-5 w-5 text-orange-600 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">2 documents pending verification</p>
+                          <p className="text-xs text-muted-foreground">Complete KYC to activate listings</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                        <Calendar className="h-5 w-5 text-blue-600 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">New booking request</p>
+                          <p className="text-xs text-muted-foreground">Respond within 24 hours</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3 p-3 rounded-lg bg-green-50 border border-green-200">
+                        <Ship className="h-5 w-5 text-green-600 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Listing approved</p>
+                          <p className="text-xs text-muted-foreground">Your yacht is now live</p>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-start space-x-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                        <Calendar className="h-5 w-5 text-blue-600 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Trip reminder</p>
+                          <p className="text-xs text-muted-foreground">Yacht booking in 3 days</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3 p-3 rounded-lg bg-green-50 border border-green-200">
+                        <GraduationCap className="h-5 w-5 text-green-600 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Course completed</p>
+                          <p className="text-xs text-muted-foreground">Certificate ready for download</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3 p-3 rounded-lg bg-purple-50 border border-purple-200">
+                        <MapPin className="h-5 w-5 text-purple-600 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Special offer</p>
+                          <p className="text-xs text-muted-foreground">20% off Cape Town boats this weekend</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
 
-          {/* Profile Section */}
-          <Card className="md:col-span-2 lg:col-span-3">
+        {/* Profile Section */}
+        <Card className="mt-8">
             <CardHeader>
               <CardTitle>Account Information</CardTitle>
               <CardDescription>
@@ -165,7 +363,6 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
-        </div>
       </div>
     </div>
   );
