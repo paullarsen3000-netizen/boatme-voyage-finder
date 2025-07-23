@@ -1,5 +1,4 @@
 import { Booking } from '@/types/booking';
-import { sendEmail } from './email';
 import { reviewReminderEmailTemplate, reviewReminderSubjectLines } from '../utils/reviewReminderTemplate';
 
 export interface ReviewReminderService {
@@ -58,14 +57,13 @@ class ReviewReminderManager implements ReviewReminderService {
         reviewUrl
       );
 
-      const result = await sendEmail({
-        to: userEmail,
-        subject,
-        html: htmlContent,
-        text: `Hi ${userName}, please leave a review for your recent ${booking.itemType} booking: ${booking.itemName}. Visit ${reviewUrl} to share your experience.`
-      });
+      // Mock email sending for development
+      console.log('Review reminder email would be sent to:', userEmail);
+      console.log('Subject:', subject);
+      console.log('Content preview:', htmlContent.substring(0, 100) + '...');
 
-      return result.success;
+      // Simulate successful email sending
+      return true;
     } catch (error) {
       console.error('Failed to send review reminder email:', error);
       return false;

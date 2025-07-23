@@ -1,9 +1,8 @@
-import { supabase } from './supabase';
 import { emailService, BookingEmailData } from './email';
 
 export interface ScheduledEmail {
   id?: string;
-  email_type: 'booking_reminder' | 'document_followup' | 'marketing';
+  email_type: 'booking_reminder' | 'document_followup' | 'marketing' | 'review_reminder';
   recipient_email: string;
   scheduled_for: string;
   data: any;
@@ -72,51 +71,45 @@ class EmailScheduler {
   }
 
   // Schedule review reminder email (24h after booking completion)
-  scheduleReviewReminderEmail(booking: Booking, recipientEmail: string, userName: string) {
-    // Calculate 24 hours after booking end date
-    const reminderDate = new Date(booking.endDate);
-    reminderDate.setHours(reminderDate.getHours() + 24);
+  async scheduleReviewReminder(bookingData: any, reminderDate: Date): Promise<boolean> {
+    try {
+      const scheduledEmail: ScheduledEmail = {
+        email_type: 'review_reminder',
+        recipient_email: bookingData.guestEmail,
+        scheduled_for: reminderDate.toISOString(),
+        data: bookingData,
+        status: 'pending'
+      };
 
-    const job: EmailJob = {
-      id: `review_reminder_${booking.id}_${Date.now()}`,
-      type: 'review_reminder',
-      scheduledFor: reminderDate,
-      recipient: recipientEmail,
-      data: { booking, userName },
-      status: 'pending',
-      attempts: 0
-    };
+      const existingScheduled = JSON.parse(localStorage.getItem('scheduled_emails') || '[]');
+      existingScheduled.push({
+        ...scheduledEmail,
+        id: `review_reminder_${Date.now()}`,
+        created_at: new Date().toISOString()
+      });
+      localStorage.setItem('scheduled_emails', JSON.stringify(existingScheduled));
 
-    this.jobs.push(job);
-    console.log(`Review reminder email scheduled for ${reminderDate.toISOString()}`);
+      console.log('Review reminder scheduled for:', reminderDate);
+      return true;
+    } catch (error) {
+      console.error('Failed to schedule review reminder:', error);
+      return false;
+    }
   }
 
-  // Cancel review reminder if review is submitted
-  cancelReviewReminder(bookingId: string) {
-    this.jobs = this.jobs.map(job => {
-      if (job.type === 'review_reminder' && 
-          job.data.booking?.id === bookingId && 
-          job.status === 'pending') {
-        return { ...job, status: 'cancelled' as const };
-      }
-      return job;
-    });
-  }
+  // Process pending emails that are due to be sent
+  async processPendingEmails(): Promise<void> {
+    try {
+      const scheduledEmails: ScheduledEmail[] = JSON.parse(localStorage.getItem('scheduled_emails') || '[]');
+      const now = new Date();
 
-  // Check if booking is eligible for review reminder
-  private isEligibleForReviewReminder(booking: Booking): boolean {
-    // Only send reminders for completed bookings
-    if (booking.status !== 'completed') return false;
-    
-    // Don't send reminders for bookings older than 30 days
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    if (new Date(booking.endDate) < thirtyDaysAgo) return false;
-    
-    // TODO: Check if review already submitted (would need review data)
-    // For now, assume we can proceed
-    return true;
-  }
+      for (const email of scheduledEmails) {
+        if (email.status === 'pending' && new Date(email.scheduled_for) <= now) {
+          console.log('Processing scheduled email:', email.id);
+          
+          const success = await this.sendScheduledEmail(email);
+          email.status = success ? 'sent' : 'failed';
+        }
       }
 
       // Save updated scheduled emails
@@ -139,6 +132,11 @@ class EmailScheduler {
             'pending'
           );
           return followupResult.success;
+
+        case 'review_reminder':
+          // Mock implementation for review reminders
+          console.log('Sending review reminder email:', scheduledEmail.data);
+          return true;
           
         default:
           console.warn('Unknown email type:', scheduledEmail.email_type);
