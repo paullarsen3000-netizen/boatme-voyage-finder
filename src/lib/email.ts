@@ -75,6 +75,10 @@ class EmailService {
     const guestTemplate = this.getBookingConfirmationTemplate(bookingData, 'guest');
     const ownerTemplate = this.getBookingConfirmationTemplate(bookingData, 'owner');
 
+    // Generate receipt PDF for attachment
+    // Note: This would require implementing PDF generation in the edge function
+    // For now, we'll include a link to view the receipt online
+
     // Send to guest
     const guestResult = await this.sendEmail({
       to: bookingData.guestEmail,
@@ -212,8 +216,12 @@ class EmailService {
             
             <div style="text-align: center; margin: 30px 0;">
               <a href="${process.env.NODE_ENV === 'production' ? 'https://boatme.co.za' : 'http://localhost:5173'}/dashboard" 
-                 style="background: #0ea5e9; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                 style="background: #0ea5e9; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-right: 10px;">
                 View My Bookings
+              </a>
+              <a href="${process.env.NODE_ENV === 'production' ? 'https://boatme.co.za' : 'http://localhost:5173'}/receipt/${bookingData.bookingId}" 
+                 style="background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                View Receipt
               </a>
             </div>
           </div>

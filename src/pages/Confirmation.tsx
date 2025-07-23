@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
-import { useSearchParams, Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { CheckCircle, Calendar, Download, Mail, ArrowRight } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { CheckCircle, Calendar, Download, Eye, ArrowRight } from 'lucide-react';
+import { ReceiptDownloadButton } from '@/components/ReceiptDownloadButton';
+import { BookingData } from '@/lib/receiptGenerator';
 
 export default function Confirmation() {
   const [searchParams] = useSearchParams();
@@ -10,46 +12,58 @@ export default function Confirmation() {
   const amount = searchParams.get('amount');
   
   const [bookingDetails] = useState({
-    itemName: 'Luxury Speedboat - Cape Town',
-    dates: 'Dec 15 - Dec 17, 2024',
-    location: 'V&A Waterfront Marina',
-    checkIn: '09:00',
-    checkOut: '18:00',
-    totalPaid: amount ? parseInt(amount) : 9000,
-    paymentMethod: '**** 3456',
-    confirmationDate: new Date().toLocaleDateString('en-ZA', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    bookingId: bookingId || 'BME-2025-001',
+    boatName: 'Luxury Yacht Charter',
+    startDate: '2025-01-25',
+    endDate: '2025-01-27',
+    location: 'V&A Waterfront Marina, Cape Town',
+    totalPaid: amount ? parseInt(amount) : 4950,
+    confirmationDate: new Date().toLocaleDateString('en-ZA'),
+    customerName: 'John Doe',
+    customerEmail: 'john.doe@example.com'
   });
 
-  const generateCalendarLink = () => {
-    const startDate = new Date('2024-12-15T09:00:00');
-    const endDate = new Date('2024-12-17T18:00:00');
-    
-    const formatDate = (date: Date) => {
-      return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-    };
+  // Mock booking data for receipt generation
+  const mockBookingData: BookingData = {
+    id: bookingDetails.bookingId,
+    bookingId: bookingDetails.bookingId,
+    customerName: bookingDetails.customerName,
+    customerEmail: bookingDetails.customerEmail,
+    customerPhone: '+27 82 123 4567',
+    providerName: 'Cape Town Boat Rentals',
+    providerEmail: 'info@ctboats.co.za',
+    itemName: bookingDetails.boatName,
+    itemType: 'boat',
+    bookingDate: bookingDetails.confirmationDate,
+    startDate: bookingDetails.startDate,
+    endDate: bookingDetails.endDate,
+    baseAmount: 4500,
+    serviceFee: 450,
+    vatAmount: 0,
+    totalAmount: bookingDetails.totalPaid,
+    paymentMethod: 'Credit Card',
+    location: bookingDetails.location,
+    createdAt: new Date().toISOString()
+  };
 
-    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(bookingDetails.itemName)}&dates=${formatDate(startDate)}/${formatDate(endDate)}&details=${encodeURIComponent(`Booking ID: ${bookingId}\nLocation: ${bookingDetails.location}`)}`;
+  const generateCalendarLink = () => {
+    const startDate = new Date(bookingDetails.startDate).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const endDate = new Date(bookingDetails.endDate).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const title = encodeURIComponent(`Boat Rental: ${bookingDetails.boatName}`);
+    const details = encodeURIComponent(`Booking ID: ${bookingDetails.bookingId}\nLocation: ${bookingDetails.location}`);
     
-    return googleCalendarUrl;
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}`;
   };
 
   if (!bookingId) {
     return (
-      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">
-              No booking information found. Please check your booking confirmation email.
-            </p>
-            <Button asChild className="w-full mt-4">
-              <Link to="/">Return Home</Link>
-            </Button>
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-md mx-auto">
+          <CardContent className="pt-6 text-center">
+            <p className="text-muted-foreground mb-4">No booking information found.</p>
+            <Link to="/">
+              <Button>Return Home</Button>
+            </Link>
           </CardContent>
         </Card>
       </div>
@@ -57,118 +71,105 @@ export default function Confirmation() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 py-8">
-      <div className="container max-w-2xl mx-auto px-4">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <CheckCircle className="h-16 w-16 text-green-500" />
-          </div>
-          <h1 className="text-3xl font-bold text-green-700 mb-2">Booking Confirmed!</h1>
-          <p className="text-muted-foreground">
-            Your payment has been processed successfully
-          </p>
-        </div>
-
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              Booking Details
-              <span className="text-sm font-normal text-muted-foreground">
-                #{bookingId}
-              </span>
-            </CardTitle>
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-2xl mx-auto">
+        <Card>
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+            <CardTitle className="text-2xl text-green-600">Booking Confirmed!</CardTitle>
+            <p className="text-muted-foreground">
+              Your booking has been successfully confirmed and paid.
+            </p>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h3 className="font-semibold mb-2">{bookingDetails.itemName}</h3>
-                <div className="space-y-1 text-sm text-muted-foreground">
-                  <p><strong>Dates:</strong> {bookingDetails.dates}</p>
-                  <p><strong>Location:</strong> {bookingDetails.location}</p>
-                  <p><strong>Check-in:</strong> {bookingDetails.checkIn}</p>
-                  <p><strong>Check-out:</strong> {bookingDetails.checkOut}</p>
+          
+          <CardContent className="space-y-6">
+            <div className="bg-muted/50 rounded-lg p-4">
+              <h3 className="font-semibold mb-3">Booking Details</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Booking ID:</span>
+                  <span className="font-medium">{bookingDetails.bookingId}</span>
                 </div>
-              </div>
-              
-              <div>
-                <h3 className="font-semibold mb-2">Payment Summary</h3>
-                <div className="space-y-1 text-sm text-muted-foreground">
-                  <p><strong>Amount Paid:</strong> R{bookingDetails.totalPaid.toLocaleString()}</p>
-                  <p><strong>Payment Method:</strong> Card ending in {bookingDetails.paymentMethod}</p>
-                  <p><strong>Confirmation Date:</strong> {bookingDetails.confirmationDate}</p>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Boat:</span>
+                  <span className="font-medium">{bookingDetails.boatName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Dates:</span>
+                  <span className="font-medium">
+                    {bookingDetails.startDate} - {bookingDetails.endDate}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Location:</span>
+                  <span className="font-medium">{bookingDetails.location}</span>
+                </div>
+                <div className="flex justify-between border-t pt-2">
+                  <span className="text-muted-foreground">Total Paid:</span>
+                  <span className="font-bold text-lg">R{bookingDetails.totalPaid.toLocaleString()}</span>
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <Button variant="outline" asChild>
-            <a 
-              href={generateCalendarLink()} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-2"
-            >
-              <Calendar className="h-4 w-4" />
-              Add to Calendar
-            </a>
-          </Button>
-          
-          <Button variant="outline" onClick={() => window.print()}>
-            <Download className="h-4 w-4 mr-2" />
-            Download Receipt
-          </Button>
-        </div>
-
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <Mail className="h-5 w-5 text-blue-600 mt-0.5" />
-              <div>
-                <h3 className="font-semibold text-blue-900 mb-1">
-                  Confirmation Email Sent
-                </h3>
-                <p className="text-sm text-blue-700 mb-3">
-                  We've sent a detailed confirmation email with all booking information, 
-                  contact details, and important instructions to your email address.
-                </p>
-                <p className="text-sm text-blue-600">
-                  <strong>What's Next:</strong> The boat owner will contact you within 24 hours 
-                  to confirm pickup details and provide any additional instructions.
-                </p>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => window.open(generateCalendarLink(), '_blank')}
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                Add to Calendar
+              </Button>
+              <div className="flex-1">
+                <ReceiptDownloadButton 
+                  booking={mockBookingData}
+                  variant="outline"
+                  size="default"
+                />
               </div>
+            </div>
+
+            <div className="text-center space-y-2">
+              <Link to={`/receipt/${bookingDetails.bookingId}`}>
+                <Button variant="ghost" size="sm">
+                  <Eye className="h-4 w-4 mr-2" />
+                  View Receipt Online
+                </Button>
+              </Link>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-medium text-blue-900 mb-2">📧 Confirmation Email Sent</h4>
+              <p className="text-sm text-blue-700">
+                A confirmation email with your booking details and receipt has been sent to {bookingDetails.customerEmail}.
+                You'll also receive a reminder email 24 hours before your booking starts.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <Link to="/dashboard" className="flex-1">
+                <Button variant="outline" className="w-full">
+                  View My Bookings
+                </Button>
+              </Link>
+              <Link to="/" className="flex-1">
+                <Button className="w-full">
+                  Book Another Experience
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
+
+            <div className="text-center text-sm text-muted-foreground border-t pt-4">
+              <p>Need help? Contact us at</p>
+              <a href="mailto:support@boatme.co.za" className="text-primary hover:underline">
+                support@boatme.co.za
+              </a>
             </div>
           </CardContent>
         </Card>
-
-        <div className="flex flex-col sm:flex-row gap-4 mt-8">
-          <Button asChild className="flex-1">
-            <Link to="/owner/bookings" className="flex items-center justify-center gap-2">
-              View My Bookings
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          
-          <Button variant="outline" asChild className="flex-1">
-            <Link to="/">
-              Book Another Experience
-            </Link>
-          </Button>
-        </div>
-
-        <div className="text-center mt-8 p-4 bg-muted rounded-lg">
-          <p className="text-sm text-muted-foreground">
-            Need help? Contact our support team at{" "}
-            <a href="mailto:support@boatme.co.za" className="text-primary hover:underline">
-              support@boatme.co.za
-            </a>{" "}
-            or{" "}
-            <a href="tel:+27123456789" className="text-primary hover:underline">
-              +27 12 345 6789
-            </a>
-          </p>
-        </div>
       </div>
     </div>
   );

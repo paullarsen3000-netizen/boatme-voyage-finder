@@ -18,6 +18,7 @@ import OwnerBookings from "./pages/owner/OwnerBookings";
 import OwnerDocuments from "./pages/owner/OwnerDocuments";
 import Checkout from "./pages/Checkout";
 import Confirmation from "./pages/Confirmation";
+import ReceiptView from "./pages/ReceiptView";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
@@ -60,6 +61,11 @@ const App = () => (
             <Route path="/confirmation" element={
               <ProtectedRoute>
                 <Confirmation />
+              </ProtectedRoute>
+            } />
+            <Route path="/receipt/:bookingId" element={
+              <ProtectedRoute>
+                <ReceiptView />
               </ProtectedRoute>
             } />
             
