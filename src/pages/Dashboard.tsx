@@ -3,7 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Ship, GraduationCap, Settings, LogOut } from 'lucide-react';
+import { Calendar, MapPin, Ship, GraduationCap, Settings, LogOut, Mail } from 'lucide-react';
+import { EmailSettings } from '@/components/EmailSettings';
+import { useEmailTriggers } from '@/hooks/useEmailTriggers';
+import { useState } from 'react';
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
@@ -322,47 +325,53 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Profile Section */}
-        <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>Account Information</CardTitle>
-              <CardDescription>
-                Your profile details and preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Name</label>
-                  <p className="text-sm text-muted-foreground">
-                    {user?.user_metadata?.first_name} {user?.user_metadata?.last_name}
-                  </p>
+        {/* Email Settings and Profile Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+          {/* Email Settings */}
+          <EmailSettings />
+
+          {/* Profile Section */}
+          <Card>
+              <CardHeader>
+                <CardTitle>Account Information</CardTitle>
+                <CardDescription>
+                  Your profile details and preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Name</label>
+                    <p className="text-sm text-muted-foreground">
+                      {user?.user_metadata?.first_name} {user?.user_metadata?.last_name}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Email</label>
+                    <p className="text-sm text-muted-foreground">{user?.email}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Phone</label>
+                    <p className="text-sm text-muted-foreground">
+                      {user?.user_metadata?.phone || 'Not provided'}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Account Type</label>
+                    <p className="text-sm text-muted-foreground">
+                      {isOwner ? 'Boat Owner / Course Provider' : 'Renter'}
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Email</label>
-                  <p className="text-sm text-muted-foreground">{user?.email}</p>
+                <div className="mt-6">
+                  <Button variant="outline">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Edit Profile
+                  </Button>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Phone</label>
-                  <p className="text-sm text-muted-foreground">
-                    {user?.user_metadata?.phone || 'Not provided'}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Account Type</label>
-                  <p className="text-sm text-muted-foreground">
-                    {isOwner ? 'Boat Owner / Course Provider' : 'Renter'}
-                  </p>
-                </div>
-              </div>
-              <div className="mt-6">
-                <Button variant="outline">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Edit Profile
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+        </div>
       </div>
     </div>
   );
