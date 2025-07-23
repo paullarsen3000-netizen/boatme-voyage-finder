@@ -36,6 +36,8 @@ import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import NotFound from "./pages/NotFound";
+import Sitemap from "./pages/Sitemap";
+import RobotsTxt from "./pages/RobotsTxt";
 
 const queryClient = new QueryClient();
 
@@ -147,6 +149,10 @@ const App = () => (
             
             {/* Course Provider Routes */}
             <Route path="/provider/analytics" element={<CourseProviderAnalytics />} />
+            
+            {/* SEO Routes */}
+            <Route path="/sitemap.xml" element={<Sitemap />} />
+            <Route path="/robots.txt" element={<RobotsTxt />} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
