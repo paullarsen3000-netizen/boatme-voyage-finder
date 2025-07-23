@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getBlogPosts, getFeaturedPosts, getBlogPostsByCategory, blogCategories } from '@/lib/blogData';
 import { BlogCategory } from '@/types/blog';
 import { BlogIndexSEO } from '@/utils/blogSeoUtils';
+import { SocialMeta } from '@/utils/socialMeta';
 
 const Blog = () => {
   const [selectedCategory, setSelectedCategory] = useState<BlogCategory | 'all'>('all');
@@ -28,6 +29,12 @@ const Blog = () => {
       <Helmet>
         <BlogIndexSEO posts={allPosts} />
       </Helmet>
+      <SocialMeta
+        title="Boating Tips, Guides & Destinations Blog"
+        description="Expert boating advice, skipper license guides, and the best boating destinations across South Africa."
+        url="/blog"
+        type="website"
+      />
       
       <div className="min-h-screen bg-background">
         {/* Hero Section */}

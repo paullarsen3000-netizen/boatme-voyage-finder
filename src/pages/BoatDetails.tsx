@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { SEOSchema } from "@/utils/seoSchema"
+import { SocialMeta } from "@/utils/socialMeta"
 import { 
   ArrowLeft, 
   Star, 
@@ -139,6 +140,13 @@ export default function BoatDetails() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SocialMeta
+        title={`Rent ${boat.name} in ${boat.location}`}
+        description={`${boat.description.slice(0, 160)}... Starting from R${boat.pricePerDay}/day. Book now!`}
+        image={boat.images[0]}
+        url={`/boats/${id}`}
+        type="product"
+      />
       <SEOSchema data={seoData} type="product" />
       {/* Back Navigation */}
       <div className="border-b bg-background/95 backdrop-blur-md sticky top-16 z-40">

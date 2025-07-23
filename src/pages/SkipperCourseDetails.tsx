@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar, MapPin, Star, Users, Clock, Award, Phone, Mail, Shield, CheckCircle } from "lucide-react"
 import { Header } from "@/components/Header"
 import { Footer } from "@/components/Footer"
+import { SocialMeta } from "@/utils/socialMeta"
 
 const mockCourse = {
   id: "1",
@@ -102,6 +103,13 @@ export default function SkipperCourseDetails() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SocialMeta
+        title={`${mockCourse.title} - ${mockCourse.provider}`}
+        description={`${mockCourse.description.slice(0, 160)}... R${mockCourse.price} in ${mockCourse.location}. SAMSA accredited skipper course.`}
+        image={mockCourse.images[0]}
+        url={`/courses/${id}`}
+        type="product"
+      />
       <Header />
       
       <main className="container mx-auto px-4 py-8">
