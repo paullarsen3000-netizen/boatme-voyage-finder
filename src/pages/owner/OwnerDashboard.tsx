@@ -13,7 +13,9 @@ import {
   Clock,
   TrendingUp,
   MapPin,
-  BarChart3
+  BarChart3,
+  Banknote,
+  DollarSign
 } from "lucide-react"
 import { Link } from "react-router-dom"
 import { Header } from "@/components/Header"
@@ -293,6 +295,18 @@ export default function OwnerDashboard() {
                   <Button variant="outline" className="w-full justify-start">
                     <BarChart3 className="w-4 h-4 mr-2" />
                     View Analytics
+                  </Button>
+                </Link>
+                <Link to="/owner/earnings" className="block">
+                  <Button variant="outline" className="w-full justify-start">
+                    <DollarSign className="w-4 h-4 mr-2" />
+                    View Earnings
+                  </Button>
+                </Link>
+                <Link to="/owner/payouts" className="block">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Banknote className="w-4 h-4 mr-2" />
+                    Manage Payouts
                   </Button>
                 </Link>
                 <Link to="/owner/documents" className="block">

@@ -21,8 +21,11 @@ import Confirmation from "./pages/Confirmation";
 import ReceiptView from "./pages/ReceiptView";
 import BookingHistory from "./pages/BookingHistory";
 import OwnerEarnings from "./pages/owner/OwnerEarnings";
+import OwnerPayouts from "./pages/owner/OwnerPayouts";
+import OwnerPayoutSettings from "./pages/owner/OwnerPayoutSettings";
 import OwnerAnalytics from "./pages/owner/OwnerAnalytics";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminPayouts from "./pages/admin/AdminPayouts";
 import CourseProviderAnalytics from "./pages/CourseProviderAnalytics";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/auth/Login";
@@ -111,9 +114,20 @@ const App = () => (
                 <OwnerAnalytics />
               </ProtectedRoute>
             } />
+            <Route path="/owner/payouts" element={
+              <ProtectedRoute requireOwner>
+                <OwnerPayouts />
+              </ProtectedRoute>
+            } />
+            <Route path="/owner/settings" element={
+              <ProtectedRoute requireOwner>
+                <OwnerPayoutSettings />
+              </ProtectedRoute>
+            } />
             
-            {/* Admin Routes */}
-            <Route path="/admin/analytics" element={<AdminAnalytics />} />
+          {/* Admin Routes */}
+          <Route path="/admin/analytics" element={<AdminAnalytics />} />
+          <Route path="/admin/payouts" element={<AdminPayouts />} />
             
             {/* Course Provider Routes */}
             <Route path="/provider/analytics" element={<CourseProviderAnalytics />} />
