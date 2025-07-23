@@ -12,7 +12,8 @@ import {
   CheckCircle,
   Clock,
   TrendingUp,
-  MapPin
+  MapPin,
+  BarChart3
 } from "lucide-react"
 import { Link } from "react-router-dom"
 import { Header } from "@/components/Header"
@@ -286,6 +287,12 @@ export default function OwnerDashboard() {
                   <Button variant="outline" className="w-full justify-start">
                     <Ship className="w-4 h-4 mr-2" />
                     Manage Listings
+                  </Button>
+                </Link>
+                <Link to="/owner/analytics" className="block">
+                  <Button variant="outline" className="w-full justify-start">
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    View Analytics
                   </Button>
                 </Link>
                 <Link to="/owner/documents" className="block">

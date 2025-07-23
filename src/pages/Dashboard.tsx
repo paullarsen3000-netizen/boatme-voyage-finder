@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate, Link } from 'react-router-dom';
-import { Calendar, MapPin, Ship, GraduationCap, Settings, LogOut, Mail } from 'lucide-react';
+import { Calendar, MapPin, Ship, GraduationCap, Settings, LogOut, Mail, BarChart3 } from 'lucide-react';
 import { EmailSettings } from '@/components/EmailSettings';
 import { useEmailTriggers } from '@/hooks/useEmailTriggers';
 import { useState } from 'react';
@@ -217,6 +217,15 @@ export default function Dashboard() {
                       <Button 
                         className="h-auto p-4 flex flex-col items-start" 
                         variant="outline"
+                        onClick={() => navigate('/owner/analytics')}
+                      >
+                        <BarChart3 className="h-6 w-6 mb-2" />
+                        <span className="font-medium">Analytics</span>
+                        <span className="text-sm text-muted-foreground">Track your performance</span>
+                      </Button>
+                      <Button 
+                        className="h-auto p-4 flex flex-col items-start" 
+                        variant="outline"
                         onClick={() => navigate('/owner/dashboard')}
                       >
                         <GraduationCap className="h-6 w-6 mb-2" />
@@ -252,6 +261,15 @@ export default function Dashboard() {
                         <MapPin className="h-6 w-6 mb-2" />
                         <span className="font-medium">Search Locations</span>
                         <span className="text-sm text-muted-foreground">Discover new destinations</span>
+                      </Button>
+                      <Button 
+                        className="h-auto p-4 flex flex-col items-start" 
+                        variant="outline"
+                        onClick={() => navigate('/admin/analytics')}
+                      >
+                        <BarChart3 className="h-6 w-6 mb-2" />
+                        <span className="font-medium">Platform Analytics</span>
+                        <span className="text-sm text-muted-foreground">View platform insights</span>
                       </Button>
                       <Button 
                         className="h-auto p-4 flex flex-col items-start" 

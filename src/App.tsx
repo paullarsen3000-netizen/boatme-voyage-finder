@@ -21,6 +21,9 @@ import Confirmation from "./pages/Confirmation";
 import ReceiptView from "./pages/ReceiptView";
 import BookingHistory from "./pages/BookingHistory";
 import OwnerEarnings from "./pages/owner/OwnerEarnings";
+import OwnerAnalytics from "./pages/owner/OwnerAnalytics";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import CourseProviderAnalytics from "./pages/CourseProviderAnalytics";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
@@ -103,6 +106,17 @@ const App = () => (
                 <OwnerEarnings />
               </ProtectedRoute>
             } />
+            <Route path="/owner/analytics" element={
+              <ProtectedRoute requireOwner>
+                <OwnerAnalytics />
+              </ProtectedRoute>
+            } />
+            
+            {/* Admin Routes */}
+            <Route path="/admin/analytics" element={<AdminAnalytics />} />
+            
+            {/* Course Provider Routes */}
+            <Route path="/provider/analytics" element={<CourseProviderAnalytics />} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
