@@ -1,5 +1,6 @@
 import { LoginForm } from '@/components/auth/LoginForm';
 import { Link } from 'react-router-dom';
+import { ResendEmailTrigger } from '@/components/ResendEmailTrigger';
 
 export default function Login() {
   return (
@@ -13,6 +14,7 @@ export default function Login() {
           </Link>
         </div>
         <LoginForm />
+        <ResendEmailTrigger />
       </div>
     </div>
   );
