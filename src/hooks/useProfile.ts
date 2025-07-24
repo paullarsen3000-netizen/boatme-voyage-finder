@@ -44,13 +44,18 @@ export function useProfile() {
   };
 
   const updateProfile = async (updates: Partial<Omit<UserProfile, 'id' | 'user_id' | 'created_at' | 'updated_at'>>) => {
-    if (!user || !profile) return { error: 'No user logged in' };
-
     try {
+      // Get current user session directly from Supabase to ensure fresh auth state
+      const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !currentUser) {
+        return { error: 'Authentication required. Please log in again.' };
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .update(updates)
-        .eq('user_id', user.id)
+        .eq('user_id', currentUser.id)
         .select()
         .single();
 
