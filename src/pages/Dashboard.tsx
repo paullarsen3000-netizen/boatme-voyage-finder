@@ -14,6 +14,19 @@ import { EmailSettings } from '@/components/EmailSettings';
 import { useEmailTriggers } from '@/hooks/useEmailTriggers';
 import { useState } from 'react';
 
+// Utility function to get time-based greeting
+const getTimeBasedGreeting = () => {
+  const hour = new Date().getHours();
+  
+  if (hour < 12) {
+    return 'Good morning';
+  } else if (hour < 17) {
+    return 'Good afternoon';
+  } else {
+    return 'Good evening';
+  }
+};
+
 export default function Dashboard() {
   const { user, signOut } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
@@ -62,7 +75,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-brand font-bold">
-              Welcome back{profile?.first_name ? `, ${profile.first_name}` : ''}!
+              {profile?.first_name ? `${getTimeBasedGreeting()}, ${profile.first_name}!` : 'Welcome back!'}
             </h1>
             <p className="text-muted-foreground font-body">
               {isOwner ? 'Manage your boat listings and rental business' : 
