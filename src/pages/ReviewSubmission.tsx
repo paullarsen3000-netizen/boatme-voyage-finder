@@ -91,9 +91,10 @@ export default function ReviewSubmission() {
         </div>
 
         <ReviewForm
-          booking={booking}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
+          bookingId={booking.id}
+          recipientId={booking.ownerId}
+          recipientName={booking.ownerName}
+          onSuccess={() => navigate('/dashboard')}
         />
       </div>
     </div>

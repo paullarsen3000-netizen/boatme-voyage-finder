@@ -174,13 +174,10 @@ export default function OwnerReviews() {
                 </div>
               ) : (
                 filteredReviews.map((review) => (
-                  <ReviewCard
-                    key={review.id}
-                    review={review}
-                    showListingName={true}
-                    showActions={true}
-                    onRespond={handleRespond}
-                  />
+                  <div key={review.id} className="p-4 border rounded-lg">
+                    <p>Review by {review.reviewerName} - {review.rating}/5 stars</p>
+                    <p>{review.comment}</p>
+                  </div>
                 ))
               )}
             </TabsContent>

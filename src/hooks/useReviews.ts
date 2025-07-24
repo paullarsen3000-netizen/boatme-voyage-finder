@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 type Review = Database['public']['Tables']['reviews']['Row'];
 
 export function useReviews(bookingId?: string) {
+  const { user } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,13 +38,12 @@ export function useReviews(bookingId?: string) {
     }
   };
 
-  const createReview = async (reviewData: {
+  const submitReview = async (reviewData: {
     booking_id: string;
     recipient_id: string;
     rating: number;
     review_text?: string;
   }) => {
-    const { user } = useAuth();
     if (!user) return { error: 'No user logged in' };
 
     try {
@@ -61,10 +61,67 @@ export function useReviews(bookingId?: string) {
       await fetchReviews(); // Refresh the list
       return { data, error: null };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create review';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to submit review';
       return { error: errorMessage };
     }
   };
 
-  return { reviews, loading, error, createReview, refetch: fetchReviews };
+  const addOwnerReply = async (reviewId: string, reply: string) => {
+    if (!user) return { error: 'No user logged in' };
+
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .update({
+          owner_reply: reply,
+          owner_reply_at: new Date().toISOString()
+        })
+        .eq('id', reviewId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await fetchReviews();
+      return { data, error: null };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add reply';
+      return { error: errorMessage };
+    }
+  };
+
+  const moderateReview = async (reviewId: string, status: 'pending' | 'published' | 'hidden') => {
+    if (!user) return { error: 'No user logged in' };
+
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .update({
+          status,
+          moderated_by: user.id,
+          moderated_at: new Date().toISOString()
+        })
+        .eq('id', reviewId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await fetchReviews();
+      return { data, error: null };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to moderate review';
+      return { error: errorMessage };
+    }
+  };
+
+  return { 
+    reviews, 
+    loading, 
+    error, 
+    submitReview,
+    addOwnerReply,
+    moderateReview,
+    refetch: fetchReviews 
+  };
 }

@@ -221,11 +221,11 @@ export default function AdminReviews() {
               ) : (
                 filteredReviews.map((review) => (
                   <div key={review.id} className="relative">
-                    <ReviewCard
-                      review={review}
-                      showListingName={true}
-                      showActions={false}
-                    />
+                    {/* TODO: Update to use new ReviewCard component */}
+                    <div className="p-4 border rounded-lg">
+                      <p>Review by {review.reviewerName} - {review.rating}/5 stars</p>
+                      <p>{review.comment}</p>
+                    </div>
                     
                     {/* Admin Actions */}
                     <div className="absolute top-4 right-4 flex gap-2">

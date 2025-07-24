@@ -480,27 +480,42 @@ export type Database = {
           booking_id: string
           created_at: string
           id: string
+          moderated_at: string | null
+          moderated_by: string | null
+          owner_reply: string | null
+          owner_reply_at: string | null
           rating: number
           recipient_id: string
           review_text: string | null
+          status: string | null
         }
         Insert: {
           author_id: string
           booking_id: string
           created_at?: string
           id?: string
+          moderated_at?: string | null
+          moderated_by?: string | null
+          owner_reply?: string | null
+          owner_reply_at?: string | null
           rating: number
           recipient_id: string
           review_text?: string | null
+          status?: string | null
         }
         Update: {
           author_id?: string
           booking_id?: string
           created_at?: string
           id?: string
+          moderated_at?: string | null
+          moderated_by?: string | null
+          owner_reply?: string | null
+          owner_reply_at?: string | null
           rating?: number
           recipient_id?: string
           review_text?: string | null
+          status?: string | null
         }
         Relationships: [
           {
