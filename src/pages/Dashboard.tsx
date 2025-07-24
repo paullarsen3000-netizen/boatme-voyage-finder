@@ -62,7 +62,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-brand font-bold">
-              Welcome back, {profile?.full_name || 'User'}!
+              Welcome back, {profile?.full_name?.split(' ')[0] || 'User'}!
             </h1>
             <p className="text-muted-foreground font-body">
               {isOwner ? 'Manage your boat listings and rental business' : 
@@ -394,33 +394,6 @@ export default function Dashboard() {
                         <MapPin className="h-6 w-6 mb-2" />
                         <span className="font-medium">Search Locations</span>
                         <span className="text-sm text-muted-foreground">Discover new destinations</span>
-                      </Button>
-                      <Button 
-                        className="h-auto p-4 flex flex-col items-start" 
-                        variant="outline"
-                        onClick={() => navigate('/admin/analytics')}
-                      >
-                        <BarChart3 className="h-6 w-6 mb-2" />
-                        <span className="font-medium">Platform Analytics</span>
-                        <span className="text-sm text-muted-foreground">View platform insights</span>
-                      </Button>
-                      <Button 
-                        className="h-auto p-4 flex flex-col items-start" 
-                        variant="outline"
-                        onClick={() => navigate('/admin/payouts')}
-                      >
-                        <CreditCard className="h-6 w-6 mb-2" />
-                        <span className="font-medium">Manage Payouts</span>
-                        <span className="text-sm text-muted-foreground">Handle platform payouts</span>
-                      </Button>
-                      <Button 
-                        className="h-auto p-4 flex flex-col items-start" 
-                        variant="outline"
-                        onClick={() => navigate('/admin/reviews')}
-                      >
-                        <Star className="h-6 w-6 mb-2" />
-                        <span className="font-medium">Review Management</span>
-                        <span className="text-sm text-muted-foreground">Moderate customer reviews</span>
                       </Button>
                       <Button 
                         className="h-auto p-4 flex flex-col items-start" 
