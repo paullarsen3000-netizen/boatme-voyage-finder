@@ -2,20 +2,25 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, FileText } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Download, FileText, AlertCircle } from 'lucide-react';
 import { BookingFilters } from '@/components/booking-history/BookingFilters';
 import { BookingHistoryTable } from '@/components/booking-history/BookingHistoryTable';
 import { EarningsSummaryCard } from '@/components/booking-history/EarningsSummaryCard';
 import { useAuth } from '@/contexts/AuthContext';
+import { useBookings } from '@/hooks/useBookings';
+import { usePayouts } from '@/hooks/usePayouts';
 import { Booking, BookingFilters as BookingFiltersType, PaginationData } from '@/types/booking';
-import { mockBookings, getBookingsForUser, getEarningsForOwner } from '@/lib/mockData';
 import { ExportUtils } from '@/lib/exportUtils';
+import { transformSupabaseBookings } from '@/lib/bookingTransforms';
 
 export default function OwnerEarnings() {
   const { user } = useAuth();
+  const { bookings: supabaseBookings, loading: bookingsLoading, error: bookingsError } = useBookings();
+  const { summary: payoutSummary, loading: payoutsLoading, error: payoutsError } = usePayouts();
   const [activeTab, setActiveTab] = useState('earnings');
   const [filters, setFilters] = useState<BookingFiltersType>({});
-  const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState<PaginationData>({
     page: 1,
     limit: 10,
@@ -24,9 +29,10 @@ export default function OwnerEarnings() {
     hasPrev: false
   });
 
-  // Mock owner bookings and earnings (in real app, this would come from Supabase)
-  const ownerBookings = user ? getBookingsForUser(user.id, 'owner') : [];
-  const earningsSummary = user ? getEarningsForOwner(user.id) : null;
+  // Transform Supabase bookings to match UI expectations (filter owner bookings)
+  const ownerBookings = transformSupabaseBookings(supabaseBookings);
+  const loading = bookingsLoading || payoutsLoading;
+  const error = bookingsError || payoutsError;
   
   const applyFilters = (bookings: Booking[]): Booking[] => {
     let filtered = [...bookings];
@@ -108,25 +114,52 @@ export default function OwnerEarnings() {
   };
 
   const handleDownloadReport = async () => {
-    if (earningsSummary && user) {
+    if (payoutSummary && user) {
+      const mockEarnings = {
+        totalEarnings: payoutSummary.totalEarnings,
+        totalWithdrawn: payoutSummary.totalPaid,
+        pendingPayouts: payoutSummary.pendingAmount,
+        availableBalance: payoutSummary.availableBalance,
+        totalBookings: ownerBookings.length,
+        monthlyBookings: ownerBookings.filter(b => {
+          const date = new Date(b.startDate);
+          const now = new Date();
+          return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+        }).length,
+        completedBookings: ownerBookings.filter(b => b.status === 'completed').length,
+        averageBookingValue: ownerBookings.length > 0 ? 
+          ownerBookings.reduce((sum, b) => sum + b.totalAmount, 0) / ownerBookings.length : 0,
+        monthlyEarnings: payoutSummary.totalEarnings * 0.1 // Estimate
+      };
+      
       await ExportUtils.generateEarningsReportPDF(
-        earningsSummary,
+        mockEarnings,
         filteredBookings,
         user.email || 'Owner'
       );
     }
   };
 
-  const handleExportCSV = () => {
-    ExportUtils.exportEarningsToCSV(filteredBookings);
-  };
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 space-y-6">
+        <Skeleton className="h-20 w-full" />
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} className="h-32 w-full" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
-  if (!earningsSummary) {
+  if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       </div>
     );
   }
@@ -141,7 +174,7 @@ export default function OwnerEarnings() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={handleExportCSV} variant="outline">
+          <Button onClick={() => ExportUtils.exportEarningsToCSV(filteredBookings)} variant="outline">
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>
@@ -159,10 +192,25 @@ export default function OwnerEarnings() {
         </TabsList>
 
         <TabsContent value="earnings" className="space-y-6">
-          <EarningsSummaryCard 
-            summary={earningsSummary}
-            onDownloadReport={handleDownloadReport}
-          />
+          {payoutSummary && (
+            <EarningsSummaryCard 
+              summary={{
+                totalEarnings: payoutSummary.totalEarnings,
+                monthlyEarnings: payoutSummary.totalEarnings * 0.1, // Estimate
+                totalBookings: ownerBookings.length,
+                monthlyBookings: ownerBookings.filter(b => {
+                  const date = new Date(b.startDate);
+                  const now = new Date();
+                  return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+                }).length,
+                pendingPayouts: payoutSummary.pendingAmount,
+                completedBookings: ownerBookings.filter(b => b.status === 'completed').length,
+                averageBookingValue: ownerBookings.length > 0 ? 
+                  ownerBookings.reduce((sum, b) => sum + b.totalAmount, 0) / ownerBookings.length : 0
+              }}
+              onDownloadReport={handleDownloadReport}
+            />
+          )}
           
           <Card>
             <CardHeader>

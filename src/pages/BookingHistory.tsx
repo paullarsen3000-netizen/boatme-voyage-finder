@@ -2,19 +2,22 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, Calendar } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Download, Calendar, AlertCircle } from 'lucide-react';
 import { BookingFilters } from '@/components/booking-history/BookingFilters';
 import { BookingHistoryTable } from '@/components/booking-history/BookingHistoryTable';
 import { useAuth } from '@/contexts/AuthContext';
+import { useBookings } from '@/hooks/useBookings';
 import { Booking, BookingFilters as BookingFiltersType, PaginationData } from '@/types/booking';
-import { mockBookings, getBookingsForUser } from '@/lib/mockData';
 import { ExportUtils } from '@/lib/exportUtils';
+import { transformSupabaseBookings } from '@/lib/bookingTransforms';
 
 export default function BookingHistory() {
   const { user } = useAuth();
+  const { bookings: supabaseBookings, loading, error } = useBookings();
   const [activeTab, setActiveTab] = useState('all');
   const [filters, setFilters] = useState<BookingFiltersType>({});
-  const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState<PaginationData>({
     page: 1,
     limit: 10,
@@ -22,11 +25,11 @@ export default function BookingHistory() {
     hasNext: false,
     hasPrev: false
   });
-
-  // Mock user bookings (in real app, this would come from Supabase)
-  const userBookings = user ? getBookingsForUser(user.id, 'renter') : [];
   
-  const filterBookingsByTab = (bookings: Booking[], tab: string): Booking[] => {
+  // Transform Supabase bookings to match UI expectations
+  const bookings = transformSupabaseBookings(supabaseBookings);
+  
+  const filterBookingsByTab = (tab: string) => {
     switch (tab) {
       case 'upcoming':
         return bookings.filter(b => b.status === 'upcoming' || b.status === 'confirmed');
@@ -39,8 +42,8 @@ export default function BookingHistory() {
     }
   };
 
-  const applyFilters = (bookings: Booking[]): Booking[] => {
-    let filtered = [...bookings];
+  const applyFilters = () => {
+    let filtered = filterBookingsByTab(activeTab);
 
     // Filter by status
     if (filters.status && filters.status.length > 0) {
@@ -93,8 +96,8 @@ export default function BookingHistory() {
     return filtered;
   };
 
-  const tabFilteredBookings = filterBookingsByTab(userBookings, activeTab);
-  const filteredBookings = applyFilters(tabFilteredBookings);
+  const tabFilteredBookings = filterBookingsByTab(activeTab);
+  const filteredBookings = applyFilters();
 
   // Update pagination
   useEffect(() => {
@@ -125,14 +128,38 @@ export default function BookingHistory() {
 
   const getTabCounts = () => {
     return {
-      all: userBookings.length,
-      upcoming: userBookings.filter(b => b.status === 'upcoming' || b.status === 'confirmed').length,
-      completed: userBookings.filter(b => b.status === 'completed').length,
-      cancelled: userBookings.filter(b => b.status === 'cancelled').length,
+      all: bookings.length,
+      upcoming: bookings.filter(b => b.status === 'upcoming' || b.status === 'confirmed').length,
+      completed: bookings.filter(b => b.status === 'completed').length,
+      cancelled: bookings.filter(b => b.status === 'cancelled').length,
     };
   };
 
   const tabCounts = getTabCounts();
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 space-y-6">
+        <Skeleton className="h-20 w-full" />
+        <div className="space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">

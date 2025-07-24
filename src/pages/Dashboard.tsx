@@ -1,22 +1,59 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/hooks/useProfile';
+import { useBookings } from '@/hooks/useBookings';
+import { useBoats } from '@/hooks/useBoats';
+import { useDocuments } from '@/hooks/useDocuments';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNavigate, Link } from 'react-router-dom';
-import { Calendar, MapPin, Ship, GraduationCap, Settings, LogOut, Mail, BarChart3, Star, CreditCard } from 'lucide-react';
+import { Calendar, MapPin, Ship, GraduationCap, Settings, LogOut, Mail, BarChart3, Star, CreditCard, AlertCircle } from 'lucide-react';
 import { EmailSettings } from '@/components/EmailSettings';
 import { useEmailTriggers } from '@/hooks/useEmailTriggers';
 import { useState } from 'react';
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
+  const { profile, loading: profileLoading } = useProfile();
+  const { bookings, loading: bookingsLoading } = useBookings();
+  const { boats, loading: boatsLoading } = useBoats();
+  const { documents, loading: documentsLoading } = useDocuments();
   const navigate = useNavigate();
-  const isOwner = user?.user_metadata?.user_type === 'owner';
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
   };
+
+  // Calculate stats based on real data
+  const userRole = profile?.role || 'renter';
+  const isOwner = userRole === 'owner';
+  const isProvider = userRole === 'provider';
+  const isAdmin = userRole === 'admin';
+
+  const upcomingBookings = bookings.filter(b => b.status === 'pending' || b.status === 'confirmed');
+  const completedBookings = bookings.filter(b => b.status === 'completed');
+  const activeBoats = boats.filter(b => b.status === 'active');
+  const pendingDocuments = documents.filter(d => !d.verified);
+
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+        <div className="container mx-auto px-4 py-8">
+          <div className="space-y-6">
+            <Skeleton className="h-20 w-full" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-32 w-full" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
@@ -25,15 +62,20 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-brand font-bold">
-              Welcome back, {user?.user_metadata?.first_name || 'User'}!
+              Welcome back, {profile?.full_name || 'User'}!
             </h1>
             <p className="text-muted-foreground font-body">
-              Manage your bookings and explore new adventures
+              {isOwner ? 'Manage your boat listings and rental business' : 
+               isProvider ? 'Manage your courses and training programs' :
+               isAdmin ? 'Oversee platform operations and user management' :
+               'Manage your bookings and explore new adventures'}
             </p>
           </div>
           <div className="flex items-center space-x-4">
-            <Badge variant={isOwner ? "default" : "secondary"}>
-              {isOwner ? 'Boat Owner' : 'Renter'}
+            <Badge variant={isOwner ? "default" : isProvider ? "secondary" : isAdmin ? "destructive" : "outline"}>
+              {isOwner ? 'Boat Owner' : 
+               isProvider ? 'Course Provider' :
+               isAdmin ? 'Administrator' : 'Renter'}
             </Badge>
             <Button variant="outline" onClick={handleSignOut}>
               <LogOut className="mr-2 h-4 w-4" />
@@ -54,7 +96,11 @@ export default function Dashboard() {
                     <div className="ml-4">
                       <p className="text-sm font-medium text-muted-foreground">Active Listings</p>
                       <div className="flex items-center">
-                        <span className="text-2xl font-bold">3</span>
+                        {boatsLoading ? (
+                          <Skeleton className="h-8 w-12" />
+                        ) : (
+                          <span className="text-2xl font-bold">{activeBoats.length}</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -67,9 +113,13 @@ export default function Dashboard() {
                     <div className="flex items-center">
                       <Calendar className="h-8 w-8 text-green-600" />
                       <div className="ml-4">
-                        <p className="text-sm font-medium text-muted-foreground">This Month Earnings</p>
+                        <p className="text-sm font-medium text-muted-foreground">Completed Bookings</p>
                         <div className="flex items-center">
-                          <span className="text-2xl font-bold">R12,450</span>
+                          {bookingsLoading ? (
+                            <Skeleton className="h-8 w-12" />
+                          ) : (
+                            <span className="text-2xl font-bold">{completedBookings.length}</span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -78,14 +128,18 @@ export default function Dashboard() {
               </Card>
 
               <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                <Link to="/owner/earnings" className="block">
+                <Link to="/owner/bookings" className="block">
                   <CardContent className="p-6">
                     <div className="flex items-center">
                       <MapPin className="h-8 w-8 text-blue-600" />
                       <div className="ml-4">
                         <p className="text-sm font-medium text-muted-foreground">Pending Bookings</p>
                         <div className="flex items-center">
-                          <span className="text-2xl font-bold">5</span>
+                          {bookingsLoading ? (
+                            <Skeleton className="h-8 w-12" />
+                          ) : (
+                            <span className="text-2xl font-bold">{upcomingBookings.length}</span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -100,7 +154,78 @@ export default function Dashboard() {
                     <div className="ml-4">
                       <p className="text-sm font-medium text-muted-foreground">Documents Status</p>
                       <div className="flex items-center">
-                        <span className="text-sm text-orange-600 font-medium">2 Pending</span>
+                        {documentsLoading ? (
+                          <Skeleton className="h-6 w-16" />
+                        ) : (
+                          <span className={`text-sm font-medium ${pendingDocuments.length > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                            {pendingDocuments.length > 0 ? `${pendingDocuments.length} Pending` : 'Complete'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          ) : isAdmin ? (
+            <>
+              {/* Admin Stats */}
+              <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                <Link to="/admin/analytics" className="block">
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <BarChart3 className="h-8 w-8 text-primary" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-muted-foreground">Platform Analytics</p>
+                        <div className="flex items-center">
+                          <span className="text-2xl font-bold">Live</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Link>
+              </Card>
+
+              <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                <Link to="/admin/payouts" className="block">
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <CreditCard className="h-8 w-8 text-green-600" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-muted-foreground">Manage Payouts</p>
+                        <div className="flex items-center">
+                          <span className="text-2xl font-bold">Admin</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Link>
+              </Card>
+
+              <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                <Link to="/admin/reviews" className="block">
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <Star className="h-8 w-8 text-blue-600" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-muted-foreground">Review Management</p>
+                        <div className="flex items-center">
+                          <span className="text-2xl font-bold">Moderate</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Link>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Settings className="h-8 w-8 text-orange-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-muted-foreground">System Status</p>
+                      <div className="flex items-center">
+                        <span className="text-sm text-green-600 font-medium">Operational</span>
                       </div>
                     </div>
                   </div>
@@ -118,7 +243,11 @@ export default function Dashboard() {
                       <div className="ml-4">
                         <p className="text-sm font-medium text-muted-foreground">Upcoming Trips</p>
                         <div className="flex items-center">
-                          <span className="text-2xl font-bold">2</span>
+                          {bookingsLoading ? (
+                            <Skeleton className="h-8 w-12" />
+                          ) : (
+                            <span className="text-2xl font-bold">{upcomingBookings.length}</span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -134,7 +263,11 @@ export default function Dashboard() {
                       <div className="ml-4">
                         <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
                         <div className="flex items-center">
-                          <span className="text-2xl font-bold">7</span>
+                          {bookingsLoading ? (
+                            <Skeleton className="h-8 w-12" />
+                          ) : (
+                            <span className="text-2xl font-bold">{bookings.length}</span>
+                          )}
                         </div>
                       </div>
                     </div>
