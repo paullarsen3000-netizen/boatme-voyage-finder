@@ -162,7 +162,7 @@ export function SignupForm() {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-brand">Create Account</CardTitle>
         <CardDescription className="font-body">
-          Join BoatMe to start your water adventure
+          Your ticket to the water starts here.
         </CardDescription>
       </CardHeader>
       <CardContent>
