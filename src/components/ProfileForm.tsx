@@ -8,13 +8,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, User, Mail, Phone, Camera } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 type UserRole = Database['public']['Enums']['user_role'];
 
 export function ProfileForm() {
+  const { user } = useAuth();
   const { profile, loading, updateProfile } = useProfile();
   const { toast } = useToast();
   const [updating, setUpdating] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [formData, setFormData] = useState({
     first_name: profile?.first_name || '',
     last_name: profile?.last_name || '',
@@ -34,8 +38,64 @@ export function ProfileForm() {
     }
   }, [profile]);
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    setUploadingPhoto(true);
+    try {
+      // Upload to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('profile-images')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile-images')
+        .getPublicUrl(filePath);
+
+      // Update profile with new image URL
+      const { error: updateError } = await updateProfile({ 
+        profile_image_url: publicUrl 
+      });
+
+      if (updateError) {
+        throw new Error(updateError);
+      }
+
+      toast({
+        title: "Photo updated",
+        description: "Your profile photo has been updated successfully.",
+      });
+    } catch (err) {
+      toast({
+        title: "Upload failed",
+        description: err instanceof Error ? err.message : "Failed to upload photo",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to update your profile.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setUpdating(true);
 
     try {
@@ -49,7 +109,7 @@ export function ProfileForm() {
         });
       } else {
         toast({
-          title: "Profile updated",
+          title: "Profile updated successfully!",
           description: "Your profile has been updated.",
         });
       }
@@ -107,9 +167,27 @@ export function ProfileForm() {
               )}
             </div>
             <div>
-              <Button type="button" variant="outline" size="sm">
-                <Camera className="h-4 w-4 mr-2" />
-                Change Photo
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
+                id="photo-upload"
+                disabled={uploadingPhoto || updating}
+              />
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                disabled={uploadingPhoto || updating}
+                onClick={() => document.getElementById('photo-upload')?.click()}
+              >
+                {uploadingPhoto ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Camera className="h-4 w-4 mr-2" />
+                )}
+                {profile?.profile_image_url ? "Edit Photo" : "Add Photo"}
               </Button>
               <p className="text-sm text-muted-foreground mt-1">
                 Upload a profile picture to personalize your account
@@ -125,13 +203,13 @@ export function ProfileForm() {
               <Input
                 id="email"
                 type="email"
-                value={profile?.email || ''}
+                value={profile?.email || user?.email || ''}
                 disabled
-                className="pl-10"
+                className="pl-10 bg-muted/50"
               />
             </div>
             <p className="text-sm text-muted-foreground">
-              Your email address cannot be changed
+              To change your email, please contact support.
             </p>
           </div>
 
