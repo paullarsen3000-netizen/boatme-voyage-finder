@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,18 @@ export function ProfileForm() {
     role: profile?.role || 'renter' as UserRole,
   });
 
+  // Update form data when profile loads
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        first_name: profile.first_name || '',
+        last_name: profile.last_name || '',
+        phone: profile.phone || '',
+        role: profile.role || 'renter' as UserRole,
+      });
+    }
+  }, [profile]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setUpdating(true);
@@ -38,7 +50,7 @@ export function ProfileForm() {
       } else {
         toast({
           title: "Profile updated",
-          description: "Your profile has been successfully updated.",
+          description: "Your profile has been updated.",
         });
       }
     } catch (err) {

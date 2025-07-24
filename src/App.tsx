@@ -33,6 +33,7 @@ import AdminReviews from "./pages/admin/AdminReviews";
 import AdminDisputes from "./pages/admin/AdminDisputes";
 import CourseProviderAnalytics from "./pages/CourseProviderAnalytics";
 import Dashboard from "./pages/Dashboard";
+import ProfileEdit from "./pages/ProfileEdit";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
@@ -69,6 +70,11 @@ const App = () => (
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile/edit" element={
+              <ProtectedRoute>
+                <ProfileEdit />
               </ProtectedRoute>
             } />
             <Route path="/checkout" element={

@@ -527,7 +527,10 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="mt-6">
-                  <Button variant="outline">
+                  <Button 
+                    variant="outline"
+                    onClick={() => navigate('/profile/edit')}
+                  >
                     <Settings className="mr-2 h-4 w-4" />
                     Edit Profile
                   </Button>
