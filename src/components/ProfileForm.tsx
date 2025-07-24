@@ -1,0 +1,186 @@
+import { useState } from 'react';
+import { useProfile } from '@/hooks/useProfile';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2, User, Mail, Phone, Camera } from 'lucide-react';
+import { Database } from '@/integrations/supabase/types';
+
+type UserRole = Database['public']['Enums']['user_role'];
+
+export function ProfileForm() {
+  const { profile, loading, updateProfile } = useProfile();
+  const { toast } = useToast();
+  const [updating, setUpdating] = useState(false);
+  const [formData, setFormData] = useState({
+    full_name: profile?.full_name || '',
+    phone: profile?.phone || '',
+    role: profile?.role || 'renter' as UserRole,
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUpdating(true);
+
+    try {
+      const { error } = await updateProfile(formData);
+      
+      if (error) {
+        toast({
+          title: "Update failed",
+          description: error,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Profile updated",
+          description: "Your profile has been successfully updated.",
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "An error occurred",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader>
+          <div className="flex items-center space-x-4">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <div>
+              <CardTitle>Loading Profile</CardTitle>
+              <CardDescription>Please wait while we load your profile...</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="w-full max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <User className="h-5 w-5" />
+          <span>Profile Settings</span>
+        </CardTitle>
+        <CardDescription>
+          Update your personal information and account settings
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Profile Picture Section */}
+          <div className="flex items-center space-x-4">
+            <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center">
+              {profile?.profile_image_url ? (
+                <img 
+                  src={profile.profile_image_url} 
+                  alt="Profile" 
+                  className="h-20 w-20 rounded-full object-cover"
+                />
+              ) : (
+                <User className="h-8 w-8 text-muted-foreground" />
+              )}
+            </div>
+            <div>
+              <Button type="button" variant="outline" size="sm">
+                <Camera className="h-4 w-4 mr-2" />
+                Change Photo
+              </Button>
+              <p className="text-sm text-muted-foreground mt-1">
+                Upload a profile picture to personalize your account
+              </p>
+            </div>
+          </div>
+
+          {/* Email (Read-only) */}
+          <div className="space-y-2">
+            <Label htmlFor="email">Email Address</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="email"
+                type="email"
+                value={profile?.email || ''}
+                disabled
+                className="pl-10"
+              />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Your email address cannot be changed
+            </p>
+          </div>
+
+          {/* Full Name */}
+          <div className="space-y-2">
+            <Label htmlFor="full_name">Full Name</Label>
+            <Input
+              id="full_name"
+              type="text"
+              placeholder="Enter your full name"
+              value={formData.full_name}
+              onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+              required
+              disabled={updating}
+            />
+          </div>
+
+          {/* Phone */}
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="Enter your phone number"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                disabled={updating}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
+          {/* Role */}
+          <div className="space-y-2">
+            <Label htmlFor="role">Account Type</Label>
+            <Select 
+              value={formData.role} 
+              onValueChange={(value: UserRole) => setFormData({ ...formData, role: value })}
+              disabled={updating}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select your account type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="renter">Renter - I want to rent boats</SelectItem>
+                <SelectItem value="owner">Owner - I want to rent out my boats</SelectItem>
+                <SelectItem value="provider">Provider - I offer skipper courses</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-muted-foreground">
+              Choose the type that best describes how you plan to use BoatMe
+            </p>
+          </div>
+
+          <Button type="submit" className="w-full" disabled={updating}>
+            {updating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Update Profile
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}

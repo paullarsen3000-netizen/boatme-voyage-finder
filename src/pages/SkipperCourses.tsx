@@ -4,110 +4,66 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, MapPin, Star, Users, Clock, Award } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Calendar, MapPin, Star, Users, Clock, Award, AlertCircle } from "lucide-react"
 import { Header } from "@/components/Header"
 import { Footer } from "@/components/Footer"
 import { Link } from "react-router-dom"
+import { useCourses } from "@/hooks/useCourses"
 
-const mockCourses = [
-  {
-    id: "1",
-    title: "Recreational Skipper License (Category R)",
-    provider: "Cape Town Marine Academy",
-    location: "V&A Waterfront, Cape Town",
-    province: "Western Cape",
-    category: "R",
-    price: 2850,
-    duration: "2 days",
-    nextDate: "2024-02-15",
-    rating: 4.8,
-    reviewCount: 124,
-    image: "/placeholder.svg",
-    description: "Perfect for recreational boating up to 9 nautical miles from shore.",
-    includes: ["Theory course", "Practical training", "SAMSA certificate", "Lunch included"],
-    type: "theory-practical"
-  },
-  {
-    id: "2", 
-    title: "Powerboat Certificate (Category B)",
-    provider: "Durban Boating School",
-    location: "Durban Marina, KZN",
-    province: "KwaZulu-Natal",
-    category: "B",
-    price: 4200,
-    duration: "3 days",
-    nextDate: "2024-02-20",
-    rating: 4.9,
-    reviewCount: 89,
-    image: "/placeholder.svg",
-    description: "Commercial powerboat license for vessels up to 15m.",
-    includes: ["Advanced theory", "Practical sea training", "Navigation skills", "Safety equipment"],
-    type: "theory-practical"
-  },
-  {
-    id: "3",
-    title: "Commercial Yacht License (Category C)",
-    provider: "Knysna Maritime Institute",
-    location: "Knysna Lagoon, Western Cape",
-    province: "Western Cape", 
-    category: "C",
-    price: 8500,
-    duration: "5 days",
-    nextDate: "2024-03-01",
-    rating: 4.7,
-    reviewCount: 45,
-    image: "/placeholder.svg",
-    description: "Professional yacht master certification for vessels up to 40m.",
-    includes: ["Comprehensive theory", "Extended practical", "Radio operator license", "First aid training"],
-    type: "theory-practical"
-  },
-  {
-    id: "4",
-    title: "Jet Ski License (Category E)",
-    provider: "Vaal Dam Water Sports",
-    location: "Vaal Dam, Gauteng",
-    province: "Gauteng",
-    category: "E",
-    price: 1850,
-    duration: "1 day",
-    nextDate: "2024-02-18",
-    rating: 4.6,
-    reviewCount: 156,
-    image: "/placeholder.svg",
-    description: "Personal watercraft license for jet skis and similar vessels.",
-    includes: ["Theory course", "Practical training", "Safety briefing", "Certificate"],
-    type: "theory-practical"
-  }
-]
+interface CourseFilters {
+  location?: string;
+  priceMin?: number;
+  priceMax?: number;
+}
 
 export default function SkipperCourses() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedProvince, setSelectedProvince] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("")
   const [priceRange, setPriceRange] = useState("")
 
   const provinces = ["Western Cape", "KwaZulu-Natal", "Gauteng", "Eastern Cape", "Free State", "Limpopo", "Mpumalanga", "Northern Cape", "North West"]
-  const categories = [
-    { value: "E", label: "Category E (Jet Ski)" },
-    { value: "R", label: "Category R (Recreational)" }, 
-    { value: "B", label: "Category B (Powerboat)" },
-    { value: "C", label: "Category C (Commercial Yacht)" }
-  ]
+  
+  // Create filters for the hook
+  const filters: CourseFilters = {
+    location: searchTerm || selectedProvince !== "all-provinces" ? (selectedProvince || searchTerm) : undefined,
+    priceMin: priceRange === "under-3000" ? undefined : 
+             priceRange === "3000-5000" ? 3000 :
+             priceRange === "5000-8000" ? 5000 :
+             priceRange === "over-8000" ? 8000 : undefined,
+    priceMax: priceRange === "under-3000" ? 3000 :
+             priceRange === "3000-5000" ? 5000 :
+             priceRange === "5000-8000" ? 8000 : undefined
+  }
+  
+  const { courses, loading, error } = useCourses(filters)
 
-  const filteredCourses = mockCourses.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         course.provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         course.location.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesProvince = !selectedProvince || selectedProvince === "all-provinces" || course.province === selectedProvince
-    const matchesCategory = !selectedCategory || selectedCategory === "all-categories" || course.category === selectedCategory
-    const matchesPrice = !priceRange || priceRange === "any-price" ||
-      (priceRange === "under-3000" && course.price < 3000) ||
-      (priceRange === "3000-5000" && course.price >= 3000 && course.price <= 5000) ||
-      (priceRange === "5000-8000" && course.price >= 5000 && course.price <= 8000) ||
-      (priceRange === "over-8000" && course.price > 8000)
-    
-    return matchesSearch && matchesProvince && matchesCategory && matchesPrice
-  })
+  // Transform Supabase course data to match the expected format
+  const transformedCourses = courses
+    .filter(course => {
+      const matchesSearch = searchTerm === "" || 
+        course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.location.toLowerCase().includes(searchTerm.toLowerCase())
+      return matchesSearch
+    })
+    .map(course => ({
+      id: course.id,
+      title: course.title,
+      provider: "Course Provider", // Could come from join with users table
+      location: course.location,
+      province: course.location.split(',').pop()?.trim() || "Unknown",
+      category: "R", // Could be added to schema
+      price: Number(course.price),
+      duration: "2 days", // Could be added to schema
+      nextDate: "2024-03-01", // Could come from available_dates
+      rating: 4.7,
+      reviewCount: 0,
+      image: "/placeholder.svg",
+      description: course.description || "",
+      includes: ["Theory course", "Practical training", "Certificate"],
+      type: "theory-practical"
+    }))
 
   return (
     <div className="min-h-screen bg-background">
@@ -148,17 +104,6 @@ export default function SkipperCourses() {
               </SelectContent>
             </Select>
 
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="License Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all-categories">All Categories</SelectItem>
-                {categories.map(cat => (
-                  <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
 
             <Select value={priceRange} onValueChange={setPriceRange}>
               <SelectTrigger>
@@ -178,13 +123,34 @@ export default function SkipperCourses() {
         {/* Results Count */}
         <div className="mb-6">
           <p className="text-muted-foreground">
-            {filteredCourses.length} course{filteredCourses.length !== 1 ? 's' : ''} available
+            {transformedCourses.length} course{transformedCourses.length !== 1 ? 's' : ''} available
           </p>
         </div>
 
         {/* Course Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCourses.map(course => (
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i}>
+                <CardHeader className="p-0">
+                  <Skeleton className="h-48 w-full rounded-t-lg" />
+                </CardHeader>
+                <CardContent className="p-4 space-y-3">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-4 w-2/3" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : error ? (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {transformedCourses.map(course => (
             <Card key={course.id} className="hover:shadow-lg transition-shadow">
               <CardHeader className="p-0">
                 <div className="relative">
@@ -251,10 +217,11 @@ export default function SkipperCourses() {
                 </Link>
               </CardFooter>
             </Card>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {filteredCourses.length === 0 && (
+        {!loading && !error && transformedCourses.length === 0 && (
           <div className="text-center py-12">
             <Award className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-xl font-semibold mb-2">No courses found</h3>

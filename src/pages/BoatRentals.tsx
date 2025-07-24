@@ -1,145 +1,57 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { SearchFilters } from "@/components/boat-rentals/SearchFilters"
 import { BoatGrid } from "@/components/boat-rentals/BoatGrid"
 import { MapView } from "@/components/boat-rentals/MapView"
 import { Button } from "@/components/ui/button"
-import { Grid, Map, Filter } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Grid, Map, Filter, AlertCircle } from "lucide-react"
+import { useBoats } from "@/hooks/useBoats"
+import { Database } from "@/integrations/supabase/types"
 
-// Mock boat data - in production this would come from an API
-const mockBoats = [
-  {
-    id: "1",
-    name: "Sea Ray Sundancer",
-    type: "speedboat",
-    images: ["https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"],
-    pricePerDay: 2500,
-    location: "Hermanus, Western Cape",
-    waterBody: "ocean",
-    rating: 4.8,
-    reviewCount: 24,
-    description: "Luxurious speedboat perfect for whale watching and coastal cruising",
-    capacity: 8,
-    length: "8.5m",
-    skipperRequired: false,
-    availability: true
-  },
-  {
-    id: "2", 
-    name: "Pontoon Paradise",
-    type: "pontoon",
-    images: ["https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"],
-    pricePerDay: 1800,
-    location: "Vaal Dam, Gauteng",
-    waterBody: "dam",
-    rating: 4.6,
-    reviewCount: 18,
-    description: "Spacious pontoon boat ideal for family gatherings and relaxing",
-    capacity: 12,
-    length: "7.2m",
-    skipperRequired: false,
-    availability: true
-  },
-  {
-    id: "3",
-    name: "Knysna Explorer",
-    type: "houseboat",
-    images: ["https://images.unsplash.com/photo-1570479334780-5ca3c5b1173f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"],
-    pricePerDay: 3200,
-    location: "Knysna Lagoon, Western Cape",
-    waterBody: "lagoon",
-    rating: 4.9,
-    reviewCount: 31,
-    description: "Fully equipped houseboat for multi-day adventures on the lagoon",
-    capacity: 6,
-    length: "12m",
-    skipperRequired: true,
-    availability: true
-  },
-  {
-    id: "4",
-    name: "JetSki Duo",
-    type: "jetski",
-    images: ["https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"],
-    pricePerDay: 800,
-    location: "Durban Beachfront, KwaZulu-Natal",
-    waterBody: "ocean",
-    rating: 4.7,
-    reviewCount: 45,
-    description: "High-performance jetski for thrilling water adventures",
-    capacity: 2,
-    length: "3.5m",
-    skipperRequired: false,
-    availability: true
-  },
-  {
-    id: "5",
-    name: "Hartebeespoort Cruiser",
-    type: "speedboat",
-    images: ["https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"],
-    pricePerDay: 1950,
-    location: "Hartebeespoort Dam, North West",
-    waterBody: "dam",
-    rating: 4.5,
-    reviewCount: 22,
-    description: "Perfect for water sports and sunset cruises on the dam",
-    capacity: 10,
-    length: "6.8m",
-    skipperRequired: false,
-    availability: false
-  },
-  {
-    id: "6",
-    name: "River Kayak Set",
-    type: "kayak",
-    images: ["https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"],
-    pricePerDay: 350,
-    location: "Orange River, Northern Cape",
-    waterBody: "river",
-    rating: 4.4,
-    reviewCount: 12,
-    description: "Peaceful river kayaking with beautiful scenery and wildlife",
-    capacity: 2,
-    length: "4.2m",
-    skipperRequired: false,
-    availability: true
-  }
-]
+interface BoatFilters {
+  location?: string;
+  type?: Database['public']['Enums']['boat_type'];
+  priceMin?: number;
+  priceMax?: number;
+  availableOnly?: boolean;
+}
 
 export default function BoatRentals() {
-  const [filteredBoats, setFilteredBoats] = useState(mockBoats)
+  const [filters, setFilters] = useState<BoatFilters>({})
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid")
   const [showFilters, setShowFilters] = useState(false)
+  
+  const { boats, loading, error } = useBoats(filters)
 
-  const handleFiltersChange = (filters: any) => {
-    let filtered = [...mockBoats]
-    
-    if (filters.location) {
-      filtered = filtered.filter(boat => 
-        boat.location.toLowerCase().includes(filters.location.toLowerCase())
-      )
+  const handleFiltersChange = (newFilters: any) => {
+    const boatFilters: BoatFilters = {
+      location: newFilters.location || undefined,
+      type: newFilters.boatType !== "all" ? newFilters.boatType : undefined,
+      priceMin: newFilters.priceRange?.[0],
+      priceMax: newFilters.priceRange?.[1],
+      availableOnly: newFilters.availableOnly
     }
-    
-    if (filters.boatType && filters.boatType !== "all") {
-      filtered = filtered.filter(boat => boat.type === filters.boatType)
-    }
-    
-    if (filters.waterBody && filters.waterBody !== "all") {
-      filtered = filtered.filter(boat => boat.waterBody === filters.waterBody)
-    }
-    
-    if (filters.priceRange) {
-      filtered = filtered.filter(boat => 
-        boat.pricePerDay >= filters.priceRange[0] && 
-        boat.pricePerDay <= filters.priceRange[1]
-      )
-    }
-    
-    if (filters.availableOnly) {
-      filtered = filtered.filter(boat => boat.availability)
-    }
-    
-    setFilteredBoats(filtered)
+    setFilters(boatFilters)
   }
+
+  // Transform Supabase boat data to match the expected format
+  const transformedBoats = boats.map(boat => ({
+    id: boat.id,
+    name: boat.title,
+    type: boat.type,
+    images: Array.isArray(boat.images) ? boat.images.map(img => String(img)) : [],
+    pricePerDay: Number(boat.price_per_day),
+    location: boat.location,
+    waterBody: "ocean", // Could be derived from location or added to schema
+    rating: 4.5, // Could come from reviews aggregation
+    reviewCount: 0, // Could come from reviews count
+    description: boat.description || "",
+    capacity: 8, // Could be added to schema
+    length: "Unknown", // Could be added to schema
+    skipperRequired: false, // Could be added to schema
+    availability: boat.status === 'active'
+  }))
 
   return (
     <div className="min-h-screen bg-background">
@@ -152,7 +64,7 @@ export default function BoatRentals() {
                 Rent a Boat
               </h1>
               <p className="text-muted-foreground font-body">
-                {filteredBoats.length} boats available across South Africa
+                {transformedBoats.length} boats available across South Africa
               </p>
             </div>
             
@@ -200,10 +112,27 @@ export default function BoatRentals() {
 
           {/* Main Content */}
           <div className="flex-1">
-            {viewMode === "grid" ? (
-              <BoatGrid boats={filteredBoats} />
+            {loading ? (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="space-y-3">
+                      <Skeleton className="h-48 w-full rounded-lg" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : error ? (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : viewMode === "grid" ? (
+              <BoatGrid boats={transformedBoats} />
             ) : (
-              <MapView boats={filteredBoats} />
+              <MapView boats={transformedBoats} />
             )}
           </div>
         </div>
