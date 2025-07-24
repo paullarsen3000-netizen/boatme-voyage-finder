@@ -14,6 +14,163 @@ export type Database = {
   }
   public: {
     Tables: {
+      blog_posts: {
+        Row: {
+          author_id: string
+          body: string
+          category: string | null
+          created_at: string
+          id: string
+          published: boolean
+          seo_meta: Json | null
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          published?: boolean
+          seo_meta?: Json | null
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          published?: boolean
+          seo_meta?: Json | null
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      boats: {
+        Row: {
+          created_at: string
+          description: string | null
+          documents_uploaded: boolean
+          id: string
+          images: Json | null
+          latitude: number | null
+          location: string
+          longitude: number | null
+          owner_id: string
+          price_per_day: number
+          status: Database["public"]["Enums"]["listing_status"]
+          title: string
+          type: Database["public"]["Enums"]["boat_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          documents_uploaded?: boolean
+          id?: string
+          images?: Json | null
+          latitude?: number | null
+          location: string
+          longitude?: number | null
+          owner_id: string
+          price_per_day: number
+          status?: Database["public"]["Enums"]["listing_status"]
+          title: string
+          type: Database["public"]["Enums"]["boat_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          documents_uploaded?: boolean
+          id?: string
+          images?: Json | null
+          latitude?: number | null
+          location?: string
+          longitude?: number | null
+          owner_id?: string
+          price_per_day?: number
+          status?: Database["public"]["Enums"]["listing_status"]
+          title?: string
+          type?: Database["public"]["Enums"]["boat_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boats_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookings: {
+        Row: {
+          boat_id: string
+          created_at: string
+          end_date: string
+          id: string
+          renter_id: string
+          start_date: string
+          status: Database["public"]["Enums"]["booking_status"]
+          total_price: number
+          updated_at: string
+        }
+        Insert: {
+          boat_id: string
+          created_at?: string
+          end_date: string
+          id?: string
+          renter_id: string
+          start_date: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          total_price: number
+          updated_at?: string
+        }
+        Update: {
+          boat_id?: string
+          created_at?: string
+          end_date?: string
+          id?: string
+          renter_id?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          total_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_boat_id_fkey"
+            columns: ["boat_id"]
+            isOneToOne: false
+            referencedRelation: "boats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_renter_id_fkey"
+            columns: ["renter_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cancellations: {
         Row: {
           booking_id: string
@@ -52,6 +209,53 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      courses: {
+        Row: {
+          available_dates: Json | null
+          created_at: string
+          description: string | null
+          id: string
+          location: string
+          price: number
+          provider_id: string
+          status: Database["public"]["Enums"]["listing_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          available_dates?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          location: string
+          price: number
+          provider_id: string
+          status?: Database["public"]["Enums"]["listing_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          available_dates?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string
+          price?: number
+          provider_id?: string
+          status?: Database["public"]["Enums"]["listing_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courses_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       disputes: {
         Row: {
@@ -106,18 +310,284 @@ export type Database = {
           },
         ]
       }
+      documents: {
+        Row: {
+          id: string
+          type: Database["public"]["Enums"]["document_type"]
+          uploaded_at: string
+          url: string
+          user_id: string
+          verified: boolean
+        }
+        Insert: {
+          id?: string
+          type: Database["public"]["Enums"]["document_type"]
+          uploaded_at?: string
+          url: string
+          user_id: string
+          verified?: boolean
+        }
+        Update: {
+          id?: string
+          type?: Database["public"]["Enums"]["document_type"]
+          uploaded_at?: string
+          url?: string
+          user_id?: string
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_logs: {
+        Row: {
+          email_address: string
+          id: string
+          sent_at: string
+          status: string | null
+          template_type: string
+          user_id: string | null
+        }
+        Insert: {
+          email_address: string
+          id?: string
+          sent_at?: string
+          status?: string | null
+          template_type: string
+          user_id?: string | null
+        }
+        Update: {
+          email_address?: string
+          id?: string
+          sent_at?: string
+          status?: string | null
+          template_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          id: string
+          message: string
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          receiver_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payouts: {
+        Row: {
+          amount: number
+          booking_id: string
+          id: string
+          owner_id: string
+          paid_at: string | null
+          requested_at: string
+          status: Database["public"]["Enums"]["payout_status"]
+        }
+        Insert: {
+          amount: number
+          booking_id: string
+          id?: string
+          owner_id: string
+          paid_at?: string | null
+          requested_at?: string
+          status?: Database["public"]["Enums"]["payout_status"]
+        }
+        Update: {
+          amount?: number
+          booking_id?: string
+          id?: string
+          owner_id?: string
+          paid_at?: string | null
+          requested_at?: string
+          status?: Database["public"]["Enums"]["payout_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payouts_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          author_id: string
+          booking_id: string
+          created_at: string
+          id: string
+          rating: number
+          recipient_id: string
+          review_text: string | null
+        }
+        Insert: {
+          author_id: string
+          booking_id: string
+          created_at?: string
+          id?: string
+          rating: number
+          recipient_id: string
+          review_text?: string | null
+        }
+        Update: {
+          author_id?: string
+          booking_id?: string
+          created_at?: string
+          id?: string
+          rating?: number
+          recipient_id?: string
+          review_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone: string | null
+          profile_image_url: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          phone?: string | null
+          profile_image_url?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          profile_image_url?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      get_current_user_profile_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
     }
     Enums: {
-      [_ in never]: never
+      boat_type: "sailing" | "motorboat" | "jetski" | "pontoon" | "other"
+      booking_status: "pending" | "confirmed" | "cancelled" | "completed"
+      document_type:
+        | "license"
+        | "insurance"
+        | "registration"
+        | "safety_certificate"
+        | "identity"
+      listing_status: "pending" | "active" | "suspended"
+      payout_status: "pending" | "paid" | "failed"
+      user_role: "renter" | "owner" | "provider" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -244,6 +714,19 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      boat_type: ["sailing", "motorboat", "jetski", "pontoon", "other"],
+      booking_status: ["pending", "confirmed", "cancelled", "completed"],
+      document_type: [
+        "license",
+        "insurance",
+        "registration",
+        "safety_certificate",
+        "identity",
+      ],
+      listing_status: ["pending", "active", "suspended"],
+      payout_status: ["pending", "paid", "failed"],
+      user_role: ["renter", "owner", "provider", "admin"],
+    },
   },
 } as const
