@@ -75,7 +75,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-brand font-bold">
-              {profile?.first_name ? `${getTimeBasedGreeting()}, ${profile.first_name}!` : 'Welcome back!'}
+              {profile?.full_name ? `${getTimeBasedGreeting()}, ${profile.full_name.split(' ')[0]}!` : 'Welcome back!'}
             </h1>
             <p className="text-muted-foreground font-body">
               {isOwner ? 'Manage your boat listings and rental business' : 

@@ -20,8 +20,7 @@ export function ProfileForm() {
   const [updating, setUpdating] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [formData, setFormData] = useState({
-    first_name: profile?.first_name || '',
-    last_name: profile?.last_name || '',
+    full_name: profile?.full_name || '',
     phone: profile?.phone || '',
     role: profile?.role || 'renter' as UserRole,
   });
@@ -30,8 +29,7 @@ export function ProfileForm() {
   useEffect(() => {
     if (profile) {
       setFormData({
-        first_name: profile.first_name || '',
-        last_name: profile.last_name || '',
+        full_name: profile.full_name || '',
         phone: profile.phone || '',
         role: profile.role || 'renter' as UserRole,
       });
@@ -213,31 +211,18 @@ export function ProfileForm() {
             </p>
           </div>
 
-          {/* Name Fields */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="first_name">First Name</Label>
-              <Input
-                id="first_name"
-                type="text"
-                placeholder="Enter your first name"
-                value={formData.first_name}
-                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                required
-                disabled={updating}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="last_name">Last Name</Label>
-              <Input
-                id="last_name"
-                type="text"
-                placeholder="Enter your last name"
-                value={formData.last_name}
-                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                disabled={updating}
-              />
-            </div>
+          {/* Full Name Field */}
+          <div className="space-y-2">
+            <Label htmlFor="full_name">Full Name</Label>
+            <Input
+              id="full_name"
+              type="text"
+              placeholder="Enter your full name"
+              value={formData.full_name}
+              onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+              required
+              disabled={updating}
+            />
           </div>
 
           {/* Phone */}

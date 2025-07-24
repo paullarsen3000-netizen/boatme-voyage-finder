@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { useAuth } from '@/contexts/AuthContext';
 
-type UserProfile = Database['public']['Tables']['profiles']['Row'];
+type UserProfile = Database['public']['Tables']['users']['Row'];
 
 export function useProfile() {
   const { user } = useAuth();
@@ -28,7 +28,7 @@ export function useProfile() {
       setError(null);
 
       const { data, error } = await supabase
-        .from('profiles')
+        .from('users')
         .select('*')
         .eq('user_id', user.id)
         .single();
@@ -48,12 +48,15 @@ export function useProfile() {
       // Get current user session directly from Supabase to ensure fresh auth state
       const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser();
       
+      console.log('Update Profile Debug:', { currentUser, authError, updates });
+      
       if (authError || !currentUser) {
+        console.error('Authentication failed:', authError);
         return { error: 'Authentication required. Please log in again.' };
       }
 
       const { data, error } = await supabase
-        .from('profiles')
+        .from('users')
         .update(updates)
         .eq('user_id', currentUser.id)
         .select()
