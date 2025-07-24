@@ -58,8 +58,12 @@ export function Header() {
 
           {/* Desktop CTA Buttons */}
           <div className="hidden md:flex items-center space-x-3">
-            <Button variant="ghost">Sign In</Button>
-            <Button>Get Started</Button>
+            <Button variant="ghost" asChild>
+              <Link to="/auth/login">Sign In</Link>
+            </Button>
+            <Button asChild>
+              <Link to="/auth/signup">Get Started</Link>
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -112,8 +116,12 @@ export function Header() {
               How It Works
             </Link>
             <div className="flex flex-col space-y-2 pt-4">
-              <Button variant="ghost" className="w-full">Sign In</Button>
-              <Button className="w-full">Get Started</Button>
+              <Button variant="ghost" className="w-full" asChild>
+                <Link to="/auth/login" onClick={() => setIsMenuOpen(false)}>Sign In</Link>
+              </Button>
+              <Button className="w-full" asChild>
+                <Link to="/auth/signup" onClick={() => setIsMenuOpen(false)}>Get Started</Link>
+              </Button>
             </div>
           </nav>
         )}
