@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,14 +10,29 @@ export function useMessages(bookingId?: string) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
     if (user) {
       fetchMessages();
+      setupRealtimeSubscription();
     } else {
       setMessages([]);
       setLoading(false);
     }
+
+    // Online/offline listeners
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, [user, bookingId]);
 
   const fetchMessages = async () => {
@@ -48,12 +63,40 @@ export function useMessages(bookingId?: string) {
     }
   };
 
+  const setupRealtimeSubscription = useCallback(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('messages_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: bookingId ? `booking_id=eq.${bookingId}` : undefined,
+        },
+        (payload) => {
+          const newMessage = payload.new as Message;
+          // Only add message if user is involved
+          if (newMessage.sender_id === user.id || newMessage.receiver_id === user.id) {
+            setMessages(prev => [...prev, newMessage]);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, bookingId]);
+
   const sendMessage = async (messageData: {
     receiver_id: string;
     message: string;
     booking_id?: string;
   }) => {
-    if (!user) return { error: 'No user logged in' };
+    if (!user || !isOnline) return { error: 'No user logged in or offline' };
 
     try {
       const { data, error } = await supabase
@@ -67,7 +110,6 @@ export function useMessages(bookingId?: string) {
 
       if (error) throw error;
 
-      await fetchMessages(); // Refresh the list
       return { data, error: null };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send message';
@@ -75,5 +117,21 @@ export function useMessages(bookingId?: string) {
     }
   };
 
-  return { messages, loading, error, sendMessage, refetch: fetchMessages };
+  const setTyping = useCallback((isTyping: boolean) => {
+    if (!user || !bookingId) return;
+    
+    // Implementation for typing indicators would go here
+    // This could use a separate realtime channel for typing events
+  }, [user, bookingId]);
+
+  return { 
+    messages, 
+    loading, 
+    error, 
+    sendMessage, 
+    refetch: fetchMessages,
+    typingUsers,
+    isOnline,
+    setTyping
+  };
 }
