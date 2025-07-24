@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { emailService, BookingEmailData, UserData } from '@/lib/email';
+import { emailService, BookingEmailData, UserData, PayoutEmailData, ReviewReminderData } from '@/lib/email';
 import { toast } from '@/hooks/use-toast';
 
 interface UseEmailTriggersProps {
@@ -160,10 +160,60 @@ export function useEmailTriggers({
     }
   };
 
+  const sendPayoutStatusUpdate = async (payoutData: PayoutEmailData) => {
+    try {
+      const result = await emailService.sendPayoutStatusEmail(payoutData);
+      
+      if (result.success) {
+        toast({
+          title: "Payout email sent!",
+          description: `Payout ${payoutData.status} email has been sent.`,
+        });
+      } else {
+        toast({
+          title: "Email failed",
+          description: result.error || "Failed to send payout update.",
+          variant: "destructive"
+        });
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('Payout email error:', error);
+      return { success: false, error: 'Failed to send payout status email' };
+    }
+  };
+
+  const sendReviewReminderEmail = async (reminderData: ReviewReminderData) => {
+    try {
+      const result = await emailService.sendReviewReminder(reminderData);
+      
+      if (result.success) {
+        toast({
+          title: "Review reminder sent!",
+          description: "Review reminder email has been sent to the guest.",
+        });
+      } else {
+        toast({
+          title: "Email failed",
+          description: result.error || "Failed to send review reminder.",
+          variant: "destructive"
+        });
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('Review reminder email error:', error);
+      return { success: false, error: 'Failed to send review reminder' };
+    }
+  };
+
   return {
     sendBookingConfirmation,
     sendDocumentStatusUpdate,
     sendBookingReminder,
+    sendPayoutStatusUpdate,
+    sendReviewReminderEmail,
     resendWelcomeEmail
   };
 }

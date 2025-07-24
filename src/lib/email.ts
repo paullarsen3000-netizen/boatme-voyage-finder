@@ -34,17 +34,35 @@ export interface UserData {
   role?: 'renter' | 'owner' | 'provider';
 }
 
+export interface PayoutEmailData {
+  payoutId: string;
+  ownerName: string;
+  ownerEmail: string;
+  amount: number;
+  status: 'pending' | 'paid' | 'rejected';
+  requestDate: string;
+}
+
+export interface ReviewReminderData {
+  bookingId: string;
+  guestName: string;
+  guestEmail: string;
+  boatName: string;
+  ownerName: string;
+  endDate: string;
+}
+
 class EmailService {
   private adminEmail = 'admin@boatme.co.za';
   
-  async sendEmail(emailData: EmailData): Promise<{ success: boolean; error?: string }> {
+  async sendEmail(emailData: EmailData & { templateType?: string; userId?: string }): Promise<{ success: boolean; error?: string }> {
     try {
-      // For now, we'll use Supabase's built-in email functionality
-      // This can be easily swapped for SendGrid/Mailgun later
-      
-      // In production, this would call an edge function that handles the actual sending
-      const { error } = await supabase.functions.invoke('send-email', {
-        body: emailData
+      const { data, error } = await supabase.functions.invoke('send-email', {
+        body: {
+          ...emailData,
+          templateType: emailData.templateType,
+          userId: emailData.userId
+        }
       });
 
       if (error) {
@@ -67,6 +85,7 @@ class EmailService {
       subject: template.subject,
       html: template.html,
       text: template.text,
+      templateType: 'welcome',
       bcc: [this.adminEmail]
     });
   }
@@ -84,7 +103,8 @@ class EmailService {
       to: bookingData.guestEmail,
       subject: guestTemplate.subject,
       html: guestTemplate.html,
-      text: guestTemplate.text
+      text: guestTemplate.text,
+      templateType: 'booking_confirmation_guest'
     });
 
     // Send to owner
@@ -93,6 +113,7 @@ class EmailService {
       subject: ownerTemplate.subject,
       html: ownerTemplate.html,
       text: ownerTemplate.text,
+      templateType: 'booking_confirmation_owner',
       bcc: [this.adminEmail]
     });
 
@@ -114,6 +135,7 @@ class EmailService {
       subject: template.subject,
       html: template.html,
       text: template.text,
+      templateType: `document_${status}`,
       bcc: [this.adminEmail]
     });
   }
@@ -125,7 +147,33 @@ class EmailService {
       to: bookingData.guestEmail,
       subject: template.subject,
       html: template.html,
-      text: template.text
+      text: template.text,
+      templateType: 'booking_reminder'
+    });
+  }
+
+  async sendPayoutStatusEmail(payoutData: PayoutEmailData): Promise<{ success: boolean; error?: string }> {
+    const template = this.getPayoutStatusTemplate(payoutData);
+    
+    return this.sendEmail({
+      to: payoutData.ownerEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+      templateType: `payout_${payoutData.status}`,
+      bcc: [this.adminEmail]
+    });
+  }
+
+  async sendReviewReminder(reminderData: ReviewReminderData): Promise<{ success: boolean; error?: string }> {
+    const template = this.getReviewReminderTemplate(reminderData);
+    
+    return this.sendEmail({
+      to: reminderData.guestEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+      templateType: 'review_reminder'
     });
   }
 
@@ -362,6 +410,115 @@ class EmailService {
         </div>
       `,
       text: `Reminder: Your booking for ${bookingData.boatName} starts tomorrow (${bookingData.startDate}). Booking ID: ${bookingData.bookingId}`
+    };
+  }
+
+  private getPayoutStatusTemplate(payoutData: PayoutEmailData): EmailTemplate {
+    const statusColors = {
+      pending: '#f59e0b',
+      paid: '#10b981',
+      rejected: '#ef4444'
+    };
+
+    const statusText = {
+      pending: 'Payout Request Received',
+      paid: 'Payout Completed',
+      rejected: 'Payout Request Rejected'
+    };
+
+    return {
+      subject: `${statusText[payoutData.status]}: R${payoutData.amount.toLocaleString()}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #0ea5e9; margin: 0;">BoatMe.co.za</h1>
+          </div>
+          
+          <h2 style="color: ${statusColors[payoutData.status]};">${statusText[payoutData.status]} ${payoutData.status === 'paid' ? '✅' : payoutData.status === 'rejected' ? '❌' : '⏰'}</h2>
+          
+          <p style="color: #475569;">Hi ${payoutData.ownerName},</p>
+          
+          ${payoutData.status === 'pending' ? `
+            <p style="color: #475569;">We've received your payout request and it's currently being processed.</p>
+            <div style="background: #fef3c7; padding: 15px; border-radius: 6px; margin: 20px 0;">
+              <p style="color: #92400e; margin: 0;"><strong>Processing Time:</strong> Payouts typically take 3-5 business days to process.</p>
+            </div>
+          ` : payoutData.status === 'paid' ? `
+            <p style="color: #475569;">Great news! Your payout has been processed and should appear in your bank account within 1-2 business days.</p>
+            <div style="background: #f0fdf4; padding: 15px; border-radius: 6px; margin: 20px 0;">
+              <p style="color: #166534; margin: 0;"><strong>Payment Details:</strong> The funds have been transferred to your registered bank account.</p>
+            </div>
+          ` : `
+            <p style="color: #475569;">Unfortunately, we couldn't process your payout request at this time. Please review your banking details and try again.</p>
+            <div style="background: #fef2f2; padding: 15px; border-radius: 6px; margin: 20px 0;">
+              <p style="color: #dc2626; margin: 0;"><strong>Next Steps:</strong> Please verify your banking information and submit a new payout request.</p>
+            </div>
+          `}
+          
+          <div style="background: #f1f5f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #334155; margin-top: 0;">Payout Details:</h3>
+            <table style="width: 100%; color: #475569;">
+              <tr><td><strong>Payout ID:</strong></td><td>${payoutData.payoutId}</td></tr>
+              <tr><td><strong>Amount:</strong></td><td>R${payoutData.amount.toLocaleString()}</td></tr>
+              <tr><td><strong>Request Date:</strong></td><td>${payoutData.requestDate}</td></tr>
+              <tr><td><strong>Status:</strong></td><td style="color: ${statusColors[payoutData.status]}; font-weight: bold;">${payoutData.status.toUpperCase()}</td></tr>
+            </table>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.NODE_ENV === 'production' ? 'https://boatme.co.za' : 'http://localhost:5173'}/owner/payouts" 
+               style="background: #0ea5e9; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              View Payout History
+            </a>
+          </div>
+        </div>
+      `,
+      text: `${statusText[payoutData.status]}: R${payoutData.amount.toLocaleString()}. Payout ID: ${payoutData.payoutId}. Status: ${payoutData.status.toUpperCase()}`
+    };
+  }
+
+  private getReviewReminderTemplate(reminderData: ReviewReminderData): EmailTemplate {
+    return {
+      subject: `How was your experience with ${reminderData.boatName}? ⭐`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #0ea5e9; margin: 0;">BoatMe.co.za</h1>
+          </div>
+          
+          <h2 style="color: #334155;">How was your boat experience? 🚤</h2>
+          
+          <p style="color: #475569;">Hi ${reminderData.guestName},</p>
+          <p style="color: #475569;">We hope you had an amazing time with <strong>${reminderData.boatName}</strong>! Your feedback helps other guests and supports boat owners like ${reminderData.ownerName}.</p>
+          
+          <div style="background: #f1f5f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #334155; margin-top: 0;">Your Recent Booking:</h3>
+            <table style="width: 100%; color: #475569;">
+              <tr><td><strong>Boat:</strong></td><td>${reminderData.boatName}</td></tr>
+              <tr><td><strong>Owner:</strong></td><td>${reminderData.ownerName}</td></tr>
+              <tr><td><strong>Completed:</strong></td><td>${reminderData.endDate}</td></tr>
+              <tr><td><strong>Booking ID:</strong></td><td>${reminderData.bookingId}</td></tr>
+            </table>
+          </div>
+          
+          <div style="background: #fef3c7; padding: 15px; border-radius: 6px; margin: 20px 0;">
+            <p style="color: #92400e; margin: 0;"><strong>Quick Review:</strong> Your review takes less than 2 minutes and helps the BoatMe community!</p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.NODE_ENV === 'production' ? 'https://boatme.co.za' : 'http://localhost:5173'}/review/${reminderData.bookingId}" 
+               style="background: #10b981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-size: 16px;">
+              ⭐ Write Your Review
+            </a>
+          </div>
+          
+          <p style="color: #64748b; font-size: 14px; text-align: center; margin-top: 40px;">
+            Reviews help maintain quality and trust in our community.<br>
+            Thank you for being part of BoatMe.co.za!
+          </p>
+        </div>
+      `,
+      text: `Thanks for booking ${reminderData.boatName}! Please share your experience by leaving a review. Visit: ${process.env.NODE_ENV === 'production' ? 'https://boatme.co.za' : 'http://localhost:5173'}/review/${reminderData.bookingId}`
     };
   }
 }
