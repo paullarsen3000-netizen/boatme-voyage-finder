@@ -62,7 +62,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-brand font-bold">
-              Welcome back, {profile?.full_name?.split(' ')[0] || 'User'}!
+              Welcome back{profile?.first_name ? `, ${profile.first_name}` : ''}!
             </h1>
             <p className="text-muted-foreground font-body">
               {isOwner ? 'Manage your boat listings and rental business' : 

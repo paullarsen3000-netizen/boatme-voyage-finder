@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { useAuth } from '@/contexts/AuthContext';
 
-type UserProfile = Database['public']['Tables']['users']['Row'];
+type UserProfile = Database['public']['Tables']['profiles']['Row'];
 
 export function useProfile() {
   const { user } = useAuth();
@@ -28,7 +28,7 @@ export function useProfile() {
       setError(null);
 
       const { data, error } = await supabase
-        .from('users')
+        .from('profiles')
         .select('*')
         .eq('user_id', user.id)
         .single();
@@ -48,7 +48,7 @@ export function useProfile() {
 
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('profiles')
         .update(updates)
         .eq('user_id', user.id)
         .select()
