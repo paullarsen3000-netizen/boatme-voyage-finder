@@ -2,15 +2,24 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { PayoutSummary } from '@/types/payout';
 import { Banknote, AlertCircle } from 'lucide-react';
+
+interface PayoutSummary {
+  totalEarnings: number;
+  totalPaid: number;
+  pendingAmount: number;
+  availableBalance: number;
+  minimumThreshold: number;
+}
 
 interface PayoutRequestCardProps {
   summary: PayoutSummary;
   hasActivePayout: boolean;
   hasVerifiedBanking: boolean;
-  onRequestPayout: () => void;
+  onRequestPayout: (amount: number) => Promise<void>;
 }
 
 export function PayoutRequestCard({ 
@@ -21,20 +30,22 @@ export function PayoutRequestCard({
 }: PayoutRequestCardProps) {
   const { toast } = useToast();
   const [isRequesting, setIsRequesting] = useState(false);
+  const [requestAmount, setRequestAmount] = useState(summary.availableBalance.toString());
 
   const canRequestPayout = hasVerifiedBanking && 
     summary.availableBalance >= summary.minimumThreshold && 
     !hasActivePayout;
 
   const handleRequestPayout = async () => {
-    if (!canRequestPayout) return;
+    const amount = parseFloat(requestAmount);
+    if (!canRequestPayout || amount <= 0 || amount > summary.availableBalance) return;
     
     setIsRequesting(true);
     try {
-      onRequestPayout();
+      await onRequestPayout(amount);
       toast({
         title: "Payout requested",
-        description: `Requested R${summary.availableBalance.toFixed(2)} for withdrawal.`,
+        description: `Requested R${amount.toFixed(2)} for withdrawal.`,
       });
     } catch (error) {
       toast({
@@ -89,7 +100,7 @@ export function PayoutRequestCard({
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Pending Payouts</p>
             <p className="text-2xl font-bold text-orange-600">
-              R{summary.pendingPayouts.toFixed(2)}
+              R{summary.pendingAmount.toFixed(2)}
             </p>
           </div>
         </div>
@@ -109,13 +120,28 @@ export function PayoutRequestCard({
           </div>
         )}
 
+        {canRequestPayout && (
+          <div className="space-y-2">
+            <Label htmlFor="amount">Withdrawal Amount</Label>
+            <Input
+              id="amount"
+              type="number"
+              value={requestAmount}
+              onChange={(e) => setRequestAmount(e.target.value)}
+              min={summary.minimumThreshold}
+              max={summary.availableBalance}
+              step="0.01"
+            />
+          </div>
+        )}
+
         <div className="pt-2">
           <Button 
             onClick={handleRequestPayout}
-            disabled={!canRequestPayout || isRequesting}
+            disabled={!canRequestPayout || isRequesting || parseFloat(requestAmount) <= 0}
             className="w-full"
           >
-            {isRequesting ? 'Requesting...' : `Request Payout (R${summary.availableBalance.toFixed(2)})`}
+            {isRequesting ? 'Requesting...' : `Request Payout (R${parseFloat(requestAmount || '0').toFixed(2)})`}
           </Button>
         </div>
 

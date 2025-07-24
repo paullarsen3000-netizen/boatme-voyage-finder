@@ -1,94 +1,107 @@
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
-import { BankingDetails } from '@/types/payout';
-import { getUserBankingDetails } from '@/lib/payoutData';
-import { useAuth } from '@/contexts/AuthContext';
-import { CheckCircle, XCircle, Clock } from 'lucide-react';
+import { usePayouts } from '@/hooks/usePayouts';
+import { CheckCircle, Clock, XCircle } from 'lucide-react';
 
 interface BankingDetailsFormData {
-  fullName: string;
-  businessName?: string;
-  bankName: string;
-  accountType: 'cheque' | 'savings' | 'business';
-  accountNumber: string;
-  branchCode: string;
-  swiftCode?: string;
-  vatNumber?: string;
+  full_name: string;
+  business_name?: string;
+  bank_name: string;
+  account_type: 'cheque' | 'savings' | 'business';
+  account_number: string;
+  branch_code: string;
+  swift_code?: string;
+  vat_number?: string;
 }
 
 export function BankingDetailsForm() {
-  const { user } = useAuth();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  
-  // Get existing banking details
-  const existingDetails = user ? getUserBankingDetails(user.id) : undefined;
-  const isVerified = existingDetails?.verificationStatus === 'approved';
-  const isRejected = existingDetails?.verificationStatus === 'rejected';
-  
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<BankingDetailsFormData>({
-    defaultValues: existingDetails ? {
-      fullName: existingDetails.fullName,
-      businessName: existingDetails.businessName || '',
-      bankName: existingDetails.bankName,
-      accountType: existingDetails.accountType,
-      accountNumber: existingDetails.accountNumber,
-      branchCode: existingDetails.branchCode,
-      swiftCode: existingDetails.swiftCode || '',
-      vatNumber: existingDetails.vatNumber || '',
-    } : undefined
+  const { bankingDetails, saveBankingDetails, loading } = usePayouts();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue
+  } = useForm<BankingDetailsFormData>({
+    defaultValues: {
+      full_name: bankingDetails?.full_name || '',
+      business_name: bankingDetails?.business_name || '',
+      bank_name: bankingDetails?.bank_name || '',
+      account_type: (bankingDetails?.account_type as 'cheque' | 'savings' | 'business') || 'cheque',
+      account_number: bankingDetails?.account_number || '',
+      branch_code: bankingDetails?.branch_code || '',
+      swift_code: bankingDetails?.swift_code || '',
+      vat_number: bankingDetails?.vat_number || '',
+    }
   });
 
   const onSubmit = async (data: BankingDetailsFormData) => {
-    setIsLoading(true);
     try {
-      // In a real implementation, this would save to Supabase
-      console.log('Saving banking details:', data);
-      
-      toast({
-        title: "Banking details saved",
-        description: "Your banking information has been updated and is pending verification.",
+      const result = await saveBankingDetails({
+        full_name: data.full_name,
+        business_name: data.business_name || '',
+        bank_name: data.bank_name,
+        account_type: data.account_type,
+        account_number: data.account_number,
+        branch_code: data.branch_code,
+        swift_code: data.swift_code || '',
+        vat_number: data.vat_number || '',
+        verification_status: 'pending',
+        verification_notes: null,
       });
+      
+      if (result.error) {
+        toast({
+          title: "Error",
+          description: result.error,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Banking details saved",
+          description: "Your banking details have been submitted for verification.",
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to save banking details. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const getVerificationBadge = () => {
-    if (!existingDetails) return null;
-    
-    switch (existingDetails.verificationStatus) {
+    if (!bankingDetails) return null;
+
+    switch (bankingDetails.verification_status) {
       case 'approved':
         return (
           <Badge variant="default" className="bg-green-100 text-green-800">
-            <CheckCircle className="w-4 h-4 mr-1" />
+            <CheckCircle className="h-3 w-3 mr-1" />
             Verified
           </Badge>
         );
       case 'rejected':
         return (
           <Badge variant="destructive">
-            <XCircle className="w-4 h-4 mr-1" />
+            <XCircle className="h-3 w-3 mr-1" />
             Rejected
           </Badge>
         );
+      case 'pending':
       default:
         return (
           <Badge variant="secondary">
-            <Clock className="w-4 h-4 mr-1" />
+            <Clock className="h-3 w-3 mr-1" />
             Pending Verification
           </Badge>
         );
@@ -107,56 +120,48 @@ export function BankingDetailsForm() {
           </div>
           {getVerificationBadge()}
         </div>
-        {isRejected && existingDetails?.verificationNotes && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-800">
-              <strong>Rejection Reason:</strong> {existingDetails.verificationNotes}
-            </p>
-          </div>
-        )}
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name *</Label>
+              <Label htmlFor="full_name">Full Name *</Label>
               <Input
-                id="fullName"
-                {...register('fullName', { required: 'Full name is required' })}
-                disabled={isVerified}
+                id="full_name"
+                {...register('full_name', { required: 'Full name is required' })}
+                disabled={bankingDetails?.verification_status === 'approved'}
               />
-              {errors.fullName && (
-                <p className="text-sm text-red-600">{errors.fullName.message}</p>
+              {errors.full_name && (
+                <p className="text-sm text-red-600">{errors.full_name.message}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="businessName">Business Name</Label>
+              <Label htmlFor="business_name">Business Name (Optional)</Label>
               <Input
-                id="businessName"
-                {...register('businessName')}
-                disabled={isVerified}
+                id="business_name"
+                {...register('business_name')}
+                disabled={bankingDetails?.verification_status === 'approved'}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="bankName">Bank Name *</Label>
+              <Label htmlFor="bank_name">Bank Name *</Label>
               <Input
-                id="bankName"
-                {...register('bankName', { required: 'Bank name is required' })}
-                disabled={isVerified}
+                id="bank_name"
+                {...register('bank_name', { required: 'Bank name is required' })}
+                disabled={bankingDetails?.verification_status === 'approved'}
               />
-              {errors.bankName && (
-                <p className="text-sm text-red-600">{errors.bankName.message}</p>
+              {errors.bank_name && (
+                <p className="text-sm text-red-600">{errors.bank_name.message}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="accountType">Account Type *</Label>
+              <Label htmlFor="account_type">Account Type *</Label>
               <Select
-                onValueChange={(value) => setValue('accountType', value as any)}
-                defaultValue={existingDetails?.accountType}
-                disabled={isVerified}
+                onValueChange={(value) => setValue('account_type', value as 'cheque' | 'savings' | 'business')}
+                disabled={bankingDetails?.verification_status === 'approved'}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select account type" />
@@ -170,54 +175,34 @@ export function BankingDetailsForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="accountNumber">Account Number *</Label>
+              <Label htmlFor="account_number">Account Number *</Label>
               <Input
-                id="accountNumber"
-                {...register('accountNumber', { required: 'Account number is required' })}
-                disabled={isVerified}
+                id="account_number"
+                {...register('account_number', { required: 'Account number is required' })}
+                disabled={bankingDetails?.verification_status === 'approved'}
               />
-              {errors.accountNumber && (
-                <p className="text-sm text-red-600">{errors.accountNumber.message}</p>
+              {errors.account_number && (
+                <p className="text-sm text-red-600">{errors.account_number.message}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="branchCode">Branch Code *</Label>
+              <Label htmlFor="branch_code">Branch Code *</Label>
               <Input
-                id="branchCode"
-                {...register('branchCode', { required: 'Branch code is required' })}
-                disabled={isVerified}
+                id="branch_code"
+                {...register('branch_code', { required: 'Branch code is required' })}
+                disabled={bankingDetails?.verification_status === 'approved'}
               />
-              {errors.branchCode && (
-                <p className="text-sm text-red-600">{errors.branchCode.message}</p>
+              {errors.branch_code && (
+                <p className="text-sm text-red-600">{errors.branch_code.message}</p>
               )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="swiftCode">SWIFT Code</Label>
-              <Input
-                id="swiftCode"
-                {...register('swiftCode')}
-                disabled={isVerified}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="vatNumber">VAT Number</Label>
-              <Input
-                id="vatNumber"
-                {...register('vatNumber')}
-                disabled={isVerified}
-              />
             </div>
           </div>
 
-          {!isVerified && (
-            <div className="flex justify-end space-x-2">
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Saving...' : 'Save Banking Details'}
-              </Button>
-            </div>
+          {bankingDetails?.verification_status !== 'approved' && (
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Saving...' : 'Save Banking Details'}
+            </Button>
           )}
         </form>
       </CardContent>

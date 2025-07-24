@@ -14,6 +14,65 @@ export type Database = {
   }
   public: {
     Tables: {
+      banking_details: {
+        Row: {
+          account_number: string
+          account_type: string
+          bank_name: string
+          branch_code: string
+          business_name: string | null
+          created_at: string | null
+          full_name: string
+          id: string
+          swift_code: string | null
+          updated_at: string | null
+          user_id: string
+          vat_number: string | null
+          verification_notes: string | null
+          verification_status: string
+        }
+        Insert: {
+          account_number: string
+          account_type: string
+          bank_name: string
+          branch_code: string
+          business_name?: string | null
+          created_at?: string | null
+          full_name: string
+          id?: string
+          swift_code?: string | null
+          updated_at?: string | null
+          user_id: string
+          vat_number?: string | null
+          verification_notes?: string | null
+          verification_status?: string
+        }
+        Update: {
+          account_number?: string
+          account_type?: string
+          bank_name?: string
+          branch_code?: string
+          business_name?: string | null
+          created_at?: string | null
+          full_name?: string
+          id?: string
+          swift_code?: string | null
+          updated_at?: string | null
+          user_id?: string
+          vat_number?: string | null
+          verification_notes?: string | null
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banking_details_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           author_id: string

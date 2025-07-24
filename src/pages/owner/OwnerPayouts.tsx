@@ -1,76 +1,93 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PayoutRequestCard } from '@/components/payout/PayoutRequestCard';
 import { PayoutHistoryTable } from '@/components/payout/PayoutHistoryTable';
-import { useAuth } from '@/contexts/AuthContext';
+import { usePayouts } from '@/hooks/usePayouts';
 import { useToast } from '@/hooks/use-toast';
-import { PayoutRequest, PayoutSummary } from '@/types/payout';
-import { getPayoutSummary, getUserPayouts, getUserBankingDetails } from '@/lib/payoutData';
-import { DollarSign, TrendingUp, Clock, CheckCircle } from 'lucide-react';
+import { DollarSign, TrendingUp, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function OwnerPayouts() {
-  const { user } = useAuth();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [summary, setSummary] = useState<PayoutSummary | null>(null);
-  const [payouts, setPayouts] = useState<PayoutRequest[]>([]);
-  const [bankingDetails, setBankingDetails] = useState(null);
+  const { 
+    payouts, 
+    summary, 
+    bankingDetails, 
+    loading, 
+    error, 
+    requestPayout 
+  } = usePayouts();
 
-  useEffect(() => {
-    if (user) {
-      fetchPayoutData();
-    }
-  }, [user]);
-
-  const fetchPayoutData = async () => {
+  const handleRequestPayout = async (amount: number) => {
     try {
-      if (!user) return;
-      
-      const summaryData = getPayoutSummary(user.id);
-      const payoutData = getUserPayouts(user.id);
-      const bankingData = getUserBankingDetails(user.id);
-      
-      setSummary(summaryData);
-      setPayouts(payoutData);
-      setBankingDetails(bankingData);
+      const result = await requestPayout(amount);
+      if (result.error) {
+        toast({
+          title: "Error",
+          description: result.error,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Payout requested",
+          description: `Your payout request for R${amount.toFixed(2)} has been submitted successfully.`,
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to load payout data",
+        description: "Failed to request payout. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleRequestPayout = () => {
-    // In a real implementation, this would create a payout request
-    toast({
-      title: "Payout requested",
-      description: "Your payout request has been submitted for processing.",
-    });
-    fetchPayoutData(); // Refresh data
-  };
-
-  const hasActivePayout = payouts.some(p => p.status === 'pending' || p.status === 'approved');
-  const hasVerifiedBanking = bankingDetails?.verificationStatus === 'approved';
+  const hasActivePayout = payouts.some(p => p.status === 'pending');
+  const hasVerifiedBanking = bankingDetails?.verification_status === 'approved';
 
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 bg-gray-200 rounded"></div>
-            ))}
+        <div className="flex items-center gap-4 mb-8">
+          <Skeleton className="h-8 w-8" />
+          <div>
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-64" />
           </div>
-          <div className="h-64 bg-gray-200 rounded"></div>
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-24" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-32 mb-2" />
+                <Skeleton className="h-3 w-24" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <Skeleton className="h-96 w-full" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Failed to load payout data: {error}
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
@@ -78,7 +95,10 @@ export default function OwnerPayouts() {
   if (!summary) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <p>Unable to load payout data</p>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Unable to load payout data</h1>
+          <p className="text-muted-foreground">Please try again later.</p>
+        </div>
       </div>
     );
   }
@@ -92,7 +112,7 @@ export default function OwnerPayouts() {
             Manage your earnings and withdrawal requests
           </p>
         </div>
-        <Link to="/owner/settings">
+        <Link to="/owner/payout-settings">
           <Button variant="outline">
             Banking Settings
           </Button>
@@ -102,54 +122,70 @@ export default function OwnerPayouts() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-green-600" />
+              Total Earnings
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R{summary.totalEarnings.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">
-              All-time earnings from bookings
-            </p>
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Total Earnings</p>
+              <p className="text-2xl font-bold text-green-600">
+                R{summary.totalEarnings.toFixed(2)}
+              </p>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Withdrawn</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-blue-600" />
+              Total Paid
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R{summary.totalWithdrawn.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">
-              Successfully paid out
-            </p>
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Total Paid</p>
+              <p className="text-2xl font-bold text-blue-600">
+                R{summary.totalPaid.toFixed(2)}
+              </p>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Payouts</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Clock className="h-4 w-4 text-orange-600" />
+              Pending Amount
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R{summary.pendingPayouts.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">
-              In processing queue
-            </p>
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Pending Amount</p>
+              <p className="text-2xl font-bold text-orange-600">
+                R{summary.pendingAmount.toFixed(2)}
+              </p>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              Available Balance
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">R{summary.availableBalance.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">
-              Ready for withdrawal
-            </p>
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Available Balance</p>
+              <p className="text-2xl font-bold text-green-600">
+                R{summary.availableBalance.toFixed(2)}
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -177,7 +213,7 @@ export default function OwnerPayouts() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Link to="/owner/settings" className="block">
+                <Link to="/owner/payout-settings" className="block">
                   <Button variant="outline" className="w-full justify-start">
                     Update Banking Details
                   </Button>
@@ -199,7 +235,22 @@ export default function OwnerPayouts() {
 
         <TabsContent value="history">
           <PayoutHistoryTable 
-            payouts={payouts}
+            payouts={payouts.map(p => ({
+              id: p.id,
+              userId: p.owner_id,
+              userName: 'Current User',
+              userEmail: 'user@example.com',
+              amount: Number(p.amount),
+              currency: 'ZAR',
+              status: p.status === 'failed' ? 'rejected' : (p.status as 'pending' | 'paid' | 'approved'),
+              requestDate: p.requested_at,
+              processedDate: p.paid_at || undefined,
+              processedBy: undefined,
+              rejectionReason: undefined,
+              linkedBookings: [p.booking_id],
+              createdAt: p.requested_at,
+              updatedAt: p.requested_at
+            }))}
             onViewDetails={(payout) => {
               toast({
                 title: "Payout Details",
