@@ -8,6 +8,9 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import PhoneInput from 'react-phone-number-input';
+import { isValidPhoneNumber } from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 
 export function SignupForm() {
   const [formData, setFormData] = useState({
@@ -38,21 +41,17 @@ export function SignupForm() {
     validateField(field, value);
   };
 
-  const formatPhoneNumber = (phone: string) => {
-    // Remove all non-digit characters
-    const cleaned = phone.replace(/\D/g, '');
+  const handlePhoneChange = (value: string | undefined) => {
+    const phoneValue = value || '';
+    setFormData(prev => ({ ...prev, phone: phoneValue }));
     
-    // Format as South African number
-    if (cleaned.length >= 10) {
-      if (cleaned.startsWith('27')) {
-        return `+${cleaned.slice(0, 2)} ${cleaned.slice(2, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7, 11)}`;
-      } else if (cleaned.startsWith('0')) {
-        return `+27 ${cleaned.slice(1, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6, 10)}`;
-      } else {
-        return `+27 ${cleaned.slice(0, 2)} ${cleaned.slice(2, 5)} ${cleaned.slice(5, 9)}`;
-      }
+    // Clear field error when user starts typing
+    if (fieldErrors.phone) {
+      setFieldErrors(prev => ({ ...prev, phone: '' }));
     }
-    return phone;
+    
+    // Real-time validation for phone
+    validateField('phone', phoneValue);
   };
 
   const validateField = (field: string, value: string) => {
@@ -62,6 +61,11 @@ export function SignupForm() {
       case 'email':
         if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
           errors.email = 'Please enter a valid email address';
+        }
+        break;
+      case 'phone':
+        if (value && !isValidPhoneNumber(value)) {
+          errors.phone = 'Please enter a valid phone number';
         }
         break;
       case 'password':
@@ -98,6 +102,12 @@ export function SignupForm() {
 
     if (!formData.lastName.trim()) {
       errors.lastName = 'Last name is required';
+    }
+
+    if (!formData.phone) {
+      errors.phone = 'Phone number is required';
+    } else if (!isValidPhoneNumber(formData.phone)) {
+      errors.phone = 'Please enter a valid phone number';
     }
 
     if (!formData.password) {
@@ -221,21 +231,22 @@ export function SignupForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone (Optional – for booking notifications)</Label>
-            <Input
+            <Label htmlFor="phone">Phone Number (Required – used for booking confirmations)</Label>
+            <PhoneInput
               id="phone"
-              type="tel"
               placeholder="+27 82 335 8681"
               value={formData.phone}
-              onChange={(e) => handleInputChange('phone', e.target.value)}
-              onBlur={(e) => {
-                if (e.target.value) {
-                  const formatted = formatPhoneNumber(e.target.value);
-                  handleInputChange('phone', formatted);
-                }
-              }}
+              onChange={handlePhoneChange}
+              defaultCountry="ZA"
+              international
+              countryCallingCodeEditable={false}
               disabled={loading}
+              className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${fieldErrors.phone ? "border-destructive" : "border-input"}`}
+              aria-describedby={fieldErrors.phone ? "phone-error" : undefined}
             />
+            {fieldErrors.phone && (
+              <p id="phone-error" className="text-sm text-destructive">{fieldErrors.phone}</p>
+            )}
           </div>
 
           <div className="space-y-3">
