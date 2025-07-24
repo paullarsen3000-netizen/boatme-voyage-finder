@@ -62,7 +62,7 @@ export function Header() {
               <Link to="/auth/login">Sign In</Link>
             </Button>
             <Button asChild>
-              <Link to="/auth/signup">Get Started</Link>
+              <Link to="/auth/signup">Register</Link>
             </Button>
           </div>
 
@@ -120,7 +120,7 @@ export function Header() {
                 <Link to="/auth/login" onClick={() => setIsMenuOpen(false)}>Sign In</Link>
               </Button>
               <Button className="w-full" asChild>
-                <Link to="/auth/signup" onClick={() => setIsMenuOpen(false)}>Get Started</Link>
+                <Link to="/auth/signup" onClick={() => setIsMenuOpen(false)}>Register</Link>
               </Button>
             </div>
           </nav>
