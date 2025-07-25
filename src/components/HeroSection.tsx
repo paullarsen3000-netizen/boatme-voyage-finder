@@ -8,6 +8,9 @@ export function HeroSection() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
+  // Debug logging
+  console.log('HeroSection Debug:', { user: !!user, userId: user?.id, loading });
+
   const handleSearch = (query: string, location?: { lat: number; lng: number }) => {
     // Navigate to boat rentals with search params
     const searchParams = new URLSearchParams();
