@@ -8,9 +8,6 @@ export function HeroSection() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
-  // Debug logging
-  console.log('HeroSection Debug:', { user: !!user, userId: user?.id, loading });
-
   const handleSearch = (query: string, location?: { lat: number; lng: number }) => {
     // Navigate to boat rentals with search params
     const searchParams = new URLSearchParams();
@@ -69,26 +66,33 @@ export function HeroSection() {
             <Button size="lg" variant="outline" className="text-lg px-8 py-6 bg-transparent hover:bg-white/10 text-white border-white/50">
               Rent a Boat
             </Button>
-            {!loading && (
-              user ? (
-                <Button 
-                  size="lg" 
-                  variant="ghost" 
-                  className="text-lg px-8 py-6 text-white hover:bg-white/10"
-                  onClick={() => navigate('/dashboard')}
-                >
-                  Go to Dashboard
-                </Button>
-              ) : (
-                <Button 
-                  size="lg" 
-                  variant="ghost" 
-                  className="text-lg px-8 py-6 text-white hover:bg-white/10"
-                  onClick={() => navigate('/auth/login')}
-                >
-                  Sign In
-                </Button>
-              )
+            {loading ? (
+              <Button 
+                size="lg" 
+                variant="ghost" 
+                className="text-lg px-8 py-6 text-white hover:bg-white/10 opacity-50"
+                disabled
+              >
+                Loading...
+              </Button>
+            ) : user ? (
+              <Button 
+                size="lg" 
+                variant="ghost" 
+                className="text-lg px-8 py-6 text-white hover:bg-white/10"
+                onClick={() => navigate('/dashboard')}
+              >
+                Go to Dashboard
+              </Button>
+            ) : (
+              <Button 
+                size="lg" 
+                variant="ghost" 
+                className="text-lg px-8 py-6 text-white hover:bg-white/10"
+                onClick={() => navigate('/auth/login')}
+              >
+                Sign In
+              </Button>
             )}
           </div>
 
