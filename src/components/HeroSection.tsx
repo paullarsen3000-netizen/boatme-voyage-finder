@@ -2,9 +2,11 @@ import { Button } from "@/components/ui/button"
 import { Search, Anchor, Users } from "lucide-react"
 import { UniversalSearchBar } from "@/components/search/UniversalSearchBar"
 import { useNavigate } from "react-router-dom"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function HeroSection() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleSearch = (query: string, location?: { lat: number; lng: number }) => {
     // Navigate to boat rentals with search params
