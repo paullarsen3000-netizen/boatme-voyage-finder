@@ -3,10 +3,17 @@ import { Search, Anchor, Users } from "lucide-react"
 import { UniversalSearchBar } from "@/components/search/UniversalSearchBar"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
+import { useEffect, useState } from "react"
 
 export function HeroSection() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch by only rendering auth-dependent content after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSearch = (query: string, location?: { lat: number; lng: number }) => {
     // Navigate to boat rentals with search params
@@ -66,7 +73,7 @@ export function HeroSection() {
             <Button size="lg" variant="outline" className="text-lg px-8 py-6 bg-transparent hover:bg-white/10 text-white border-white/50">
               Rent a Boat
             </Button>
-            {loading ? (
+            {!mounted || loading ? (
               <Button 
                 size="lg" 
                 variant="ghost" 
