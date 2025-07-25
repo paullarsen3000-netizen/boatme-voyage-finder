@@ -66,9 +66,25 @@ export function HeroSection() {
             <Button size="lg" variant="outline" className="text-lg px-8 py-6 bg-transparent hover:bg-white/10 text-white border-white/50">
               Rent a Boat
             </Button>
-            <Button size="lg" variant="ghost" className="text-lg px-8 py-6 text-white hover:bg-white/10">
-              List My Boat
-            </Button>
+            {user ? (
+              <Button 
+                size="lg" 
+                variant="ghost" 
+                className="text-lg px-8 py-6 text-white hover:bg-white/10"
+                onClick={() => navigate('/dashboard')}
+              >
+                Go to Dashboard
+              </Button>
+            ) : (
+              <Button 
+                size="lg" 
+                variant="ghost" 
+                className="text-lg px-8 py-6 text-white hover:bg-white/10"
+                onClick={() => navigate('/auth/login')}
+              >
+                Sign In
+              </Button>
+            )}
           </div>
 
           {/* Trust Indicators */}
