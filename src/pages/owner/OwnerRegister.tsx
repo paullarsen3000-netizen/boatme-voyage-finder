@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,6 +10,8 @@ import { Header } from "@/components/Header"
 import { Footer } from "@/components/Footer"
 import { useNavigate } from "react-router-dom"
 import { useToast } from "@/hooks/use-toast"
+import { supabase } from '@/integrations/supabase/client'
+import { useAuth } from '@/contexts/AuthContext'
 
 const steps = [
   { id: 1, title: "Personal Details", description: "Basic information" },
@@ -18,16 +20,21 @@ const steps = [
   { id: 4, title: "Verification", description: "Complete registration" }
 ]
 
+interface DocumentFile {
+  name: string
+  url: string
+}
+
 interface FormData {
   fullName: string
   email: string
   phone: string
   password: string
   confirmPassword: string
-  idDocument: File | null
-  proofOwnership: File | null
-  cofDocument: File | null
-  insuranceDocument: File | null
+  idDocument: DocumentFile | null
+  proofOwnership: DocumentFile | null
+  cofDocument: DocumentFile | null
+  insuranceDocument: DocumentFile | null
   agreementSigned: boolean
   legalName: string
 }
@@ -49,9 +56,60 @@ export default function OwnerRegister() {
   })
   const navigate = useNavigate()
   const { toast } = useToast()
+  const { user } = useAuth()
 
-  const handleFileUpload = (field: keyof FormData, file: File | null) => {
-    if (file && file.size > 10 * 1024 * 1024) {
+  // Load existing documents on mount
+  useEffect(() => {
+    const loadDocs = async () => {
+      if (!user?.id) return
+
+      try {
+        const { data: files, error } = await supabase
+          .storage
+          .from('documents')
+          .list(`${user.id}/`, { limit: 100, offset: 0 })
+
+        if (error) {
+          console.error('Error listing docs:', error)
+          return
+        }
+
+        if (!files) return
+
+        const newFormData = { ...formData }
+        
+        for (const file of files) {
+          const { data: urlData } = supabase
+            .storage
+            .from('documents')
+            .getPublicUrl(`${user.id}/${file.name}`)
+
+          const doc = { name: file.name, url: urlData.publicUrl }
+
+          if (file.name.startsWith('idDocument-')) {
+            newFormData.idDocument = doc
+          } else if (file.name.startsWith('proofOwnership-')) {
+            newFormData.proofOwnership = doc
+          } else if (file.name.startsWith('cofDocument-')) {
+            newFormData.cofDocument = doc
+          } else if (file.name.startsWith('insuranceDocument-')) {
+            newFormData.insuranceDocument = doc
+          }
+        }
+        
+        setFormData(newFormData)
+      } catch (error) {
+        console.error('Error loading documents:', error)
+      }
+    }
+
+    loadDocs()
+  }, [user?.id])
+
+  const handleFileUpload = async (field: keyof FormData, file: File | null) => {
+    if (!file) return
+    
+    if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "File too large",
         description: "Please upload files smaller than 10MB",
@@ -59,7 +117,50 @@ export default function OwnerRegister() {
       })
       return
     }
-    setFormData(prev => ({ ...prev, [field]: file }))
+
+    if (!user?.id) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to upload documents",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      const fileName = `${field}-${Date.now()}-${file.name}`
+      const { data, error: uploadError } = await supabase
+        .storage
+        .from('documents')
+        .upload(`${user.id}/${fileName}`, file, {
+          cacheControl: '3600',
+          upsert: true,
+        })
+
+      if (uploadError) throw uploadError
+
+      const { data: urlData } = supabase
+        .storage
+        .from('documents')
+        .getPublicUrl(data.path)
+
+      setFormData(prev => ({ 
+        ...prev, 
+        [field]: { name: file.name, url: urlData.publicUrl } 
+      }))
+
+      toast({
+        title: "Document uploaded",
+        description: "Your document has been uploaded successfully",
+      })
+    } catch (error) {
+      console.error('Upload error:', error)
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload document. Please try again.",
+        variant: "destructive"
+      })
+    }
   }
 
   const handleNext = () => {
@@ -105,7 +206,7 @@ export default function OwnerRegister() {
     title: string
     description: string
     field: keyof FormData
-    file: File | null
+    file: DocumentFile | null
     required?: boolean
   }) => (
     <Card className="border-2 border-dashed border-gray-300 hover:border-primary/50 transition-colors">
@@ -114,7 +215,14 @@ export default function OwnerRegister() {
           {file ? (
             <div className="flex items-center justify-center space-x-2 text-green-600">
               <CheckCircle className="w-6 h-6" />
-              <span className="font-medium">{file.name}</span>
+              <a 
+                href={file.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="font-medium underline hover:no-underline"
+              >
+                {file.name}
+              </a>
             </div>
           ) : (
             <div className="space-y-2">
