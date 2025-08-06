@@ -1,4 +1,3 @@
-
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -27,46 +26,46 @@ export default function HowItWorks() {
         <section className="mb-16">
           <h2 className="text-3xl font-brand font-bold text-center mb-12">For Boat Renters</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="text-center h-full flex flex-col">
-              <CardHeader className="flex-shrink-0">
+            <Card className="h-full flex flex-col justify-between">
+              <CardHeader className="text-center">
                 <Search className="h-12 w-12 text-primary mx-auto mb-4" />
                 <CardTitle>1. Search & Discover</CardTitle>
                 <CardDescription>
                   Browse verified boats in your preferred location using our smart search
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="text-sm text-muted-foreground">
+              <CardContent>
+                <p className="text-sm text-muted-foreground text-center">
                   Filter by boat type, location, price, and amenities to find the perfect vessel for your adventure.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="text-center h-full flex flex-col">
-              <CardHeader className="flex-shrink-0">
+            <Card className="h-full flex flex-col justify-between">
+              <CardHeader className="text-center">
                 <Calendar className="h-12 w-12 text-primary mx-auto mb-4" />
                 <CardTitle>2. Book Securely</CardTitle>
                 <CardDescription>
                   Reserve your boat with our secure booking system and instant confirmation
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="text-sm text-muted-foreground">
+              <CardContent>
+                <p className="text-sm text-muted-foreground text-center">
                   Get instant booking confirmation, secure payment processing, and comprehensive insurance coverage.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="text-center h-full flex flex-col">
-              <CardHeader className="flex-shrink-0">
+            <Card className="h-full flex flex-col justify-between">
+              <CardHeader className="text-center">
                 <Anchor className="h-12 w-12 text-primary mx-auto mb-4" />
                 <CardTitle>3. Set Sail</CardTitle>
                 <CardDescription>
                   Meet your boat owner, complete the handover, and enjoy your boating experience
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="text-sm text-muted-foreground">
+              <CardContent>
+                <p className="text-sm text-muted-foreground text-center">
                   Receive a thorough boat orientation and safety briefing before embarking on your adventure.
                 </p>
               </CardContent>
@@ -78,46 +77,46 @@ export default function HowItWorks() {
         <section className="mb-16">
           <h2 className="text-3xl font-brand font-bold text-center mb-12">For Boat Owners</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="text-center h-full flex flex-col">
-              <CardHeader className="flex-shrink-0">
+            <Card className="h-full flex flex-col justify-between">
+              <CardHeader className="text-center">
                 <Users className="h-12 w-12 text-primary mx-auto mb-4" />
                 <CardTitle>1. List Your Boat</CardTitle>
                 <CardDescription>
                   Create a compelling listing with photos and detailed descriptions
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="text-sm text-muted-foreground">
+              <CardContent>
+                <p className="text-sm text-muted-foreground text-center">
                   Upload high-quality photos, set your availability, and describe your boat's unique features.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="text-center h-full flex flex-col">
-              <CardHeader className="flex-shrink-0">
+            <Card className="h-full flex flex-col justify-between">
+              <CardHeader className="text-center">
                 <Shield className="h-12 w-12 text-primary mx-auto mb-4" />
                 <CardTitle>2. Get Verified</CardTitle>
                 <CardDescription>
                   Complete our verification process to build trust with renters
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="text-sm text-muted-foreground">
+              <CardContent>
+                <p className="text-sm text-muted-foreground text-center">
                   Verify your identity, boat documentation, and insurance for maximum credibility.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="text-center h-full flex flex-col">
-              <CardHeader className="flex-shrink-0">
+            <Card className="h-full flex flex-col justify-between">
+              <CardHeader className="text-center">
                 <MapPin className="h-12 w-12 text-primary mx-auto mb-4" />
                 <CardTitle>3. Earn Money</CardTitle>
                 <CardDescription>
                   Accept bookings and earn money from your boat when you're not using it
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="text-sm text-muted-foreground">
+              <CardContent>
+                <p className="text-sm text-muted-foreground text-center">
                   Set your own rates, manage bookings through our platform, and receive secure payments.
                 </p>
               </CardContent>
