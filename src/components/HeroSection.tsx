@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button"
 import { Search, Anchor, Users } from "lucide-react"
 import { UniversalSearchBar } from "@/components/search/UniversalSearchBar"
@@ -24,6 +25,14 @@ export function HeroSection() {
       searchParams.set('lng', location.lng.toString());
     }
     navigate(`/rent?${searchParams.toString()}`);
+  };
+
+  const handleSkipperLicence = () => {
+    navigate('/skipper-courses');
+  };
+
+  const handleRentBoat = () => {
+    navigate('/rent');
   };
 
   return (
@@ -67,10 +76,20 @@ export function HeroSection() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="text-lg px-8 py-6 bg-white/20 hover:bg-white/30 text-white border-white/30">
+            <Button 
+              size="lg" 
+              variant="secondary" 
+              className="text-lg px-8 py-6 bg-white/20 hover:bg-white/30 text-white border-white/30 transition-colors focus:ring-2 focus:ring-white/50"
+              onClick={handleSkipperLicence}
+            >
               Get My Skipper Licence
             </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-6 bg-transparent hover:bg-white/10 text-white border-white/50">
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="text-lg px-8 py-6 bg-transparent hover:bg-white/10 text-white border-white/50 transition-colors focus:ring-2 focus:ring-white/50"
+              onClick={handleRentBoat}
+            >
               Rent a Boat
             </Button>
             {!mounted || loading ? (
@@ -86,7 +105,7 @@ export function HeroSection() {
               <Button 
                 size="lg" 
                 variant="ghost" 
-                className="text-lg px-8 py-6 text-white hover:bg-white/10"
+                className="text-lg px-8 py-6 text-white hover:bg-white/10 transition-colors focus:ring-2 focus:ring-white/50"
                 onClick={() => navigate('/dashboard')}
               >
                 Go to Dashboard
@@ -95,7 +114,7 @@ export function HeroSection() {
               <Button 
                 size="lg" 
                 variant="ghost" 
-                className="text-lg px-8 py-6 text-white hover:bg-white/10"
+                className="text-lg px-8 py-6 text-white hover:bg-white/10 transition-colors focus:ring-2 focus:ring-white/50"
                 onClick={() => navigate('/auth/login')}
               >
                 Sign In

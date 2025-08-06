@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -37,6 +38,8 @@ import ProfileEdit from "./pages/ProfileEdit";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
+import HowItWorks from "./pages/HowItWorks";
 import NotFound from "./pages/NotFound";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
@@ -60,11 +63,13 @@ const App = () => (
             <Route path="/boats/:id" element={<BoatDetails />} />
             <Route path="/skipper-courses" element={<SkipperCourses />} />
             <Route path="/skippers/:id" element={<SkipperCourseDetails />} />
+            <Route path="/how-it-works" element={<HowItWorks />} />
             
             {/* Auth Routes */}
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/signup" element={<Signup />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
             
             {/* Protected Routes */}
             <Route path="/dashboard" element={

@@ -1,3 +1,4 @@
+
 import { Anchor, Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react"
 
 export function Footer() {
@@ -27,9 +28,8 @@ export function Footer() {
             <h3 className="font-semibold mb-4 text-background">Services</h3>
             <ul className="space-y-2 text-muted">
               <li><a href="/skipper-courses" className="hover:text-primary">Skipper Courses</a></li>
-              <li><a href="/boat-rentals" className="hover:text-primary">Boat Rentals</a></li>
-              <li><a href="/list-boat" className="hover:text-primary">List Your Boat</a></li>
-              <li><a href="/insurance" className="hover:text-primary">Insurance</a></li>
+              <li><a href="/rent" className="hover:text-primary">Boat Rentals</a></li>
+              <li><a href="/owner/register" className="hover:text-primary">List Your Boat</a></li>
             </ul>
           </div>
 
@@ -38,9 +38,7 @@ export function Footer() {
             <h3 className="font-semibold mb-4 text-background">Support</h3>
             <ul className="space-y-2 text-muted">
               <li><a href="/how-it-works" className="hover:text-primary">How It Works</a></li>
-              <li><a href="/safety" className="hover:text-primary">Safety Guidelines</a></li>
-              <li><a href="/faq" className="hover:text-primary">FAQ</a></li>
-              <li><a href="/contact" className="hover:text-primary">Contact Us</a></li>
+              <li><a href="/blog" className="hover:text-primary">Blog</a></li>
             </ul>
           </div>
 
@@ -68,9 +66,7 @@ export function Footer() {
         <div className="border-t border-border pt-8 flex flex-col md:flex-row justify-between items-center text-muted text-sm">
           <p>&copy; 2024 BoatMe.co.za. All rights reserved.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <a href="/privacy" className="hover:text-primary">Privacy Policy</a>
-            <a href="/terms" className="hover:text-primary">Terms of Service</a>
-            <a href="/cookies" className="hover:text-primary">Cookie Policy</a>
+            <span className="text-muted">More pages coming soon</span>
           </div>
         </div>
       </div>
