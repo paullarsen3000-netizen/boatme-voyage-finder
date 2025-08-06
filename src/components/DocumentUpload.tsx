@@ -1,6 +1,6 @@
+
 import { useState, useCallback } from 'react';
 import { FileUpload, FileUploadConfig } from '@/components/FileUpload';
-import { useDocuments } from '@/hooks/useDocuments';
 import { useToast } from '@/hooks/use-toast';
 import { Database } from '@/integrations/supabase/types';
 
@@ -8,7 +8,7 @@ type DocumentType = Database['public']['Enums']['document_type'];
 
 interface DocumentUploadProps {
   documentType: DocumentType;
-  onUploadSuccess?: (documentId: string) => void;
+  onUploadSuccess?: (file: File) => void;
   className?: string;
   disabled?: boolean;
 }
@@ -55,7 +55,6 @@ export function DocumentUpload({
   className,
   disabled = false 
 }: DocumentUploadProps) {
-  const { uploadDocument, loading } = useDocuments();
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
 
@@ -71,18 +70,7 @@ export function DocumentUpload({
 
     setUploading(true);
     try {
-      const { data, error } = await uploadDocument(files[0].file, documentType);
-      
-      if (error) {
-        throw new Error(error);
-      }
-
-      toast({
-        title: "Document uploaded successfully",
-        description: `${DOCUMENT_LABELS[documentType]} has been uploaded and is pending verification.`,
-      });
-
-      onUploadSuccess?.(data?.id || '');
+      onUploadSuccess?.(files[0].file);
     } catch (error) {
       toast({
         title: "Upload failed",
@@ -92,7 +80,7 @@ export function DocumentUpload({
     } finally {
       setUploading(false);
     }
-  }, [uploadDocument, documentType, onUploadSuccess, toast]);
+  }, [onUploadSuccess, toast]);
 
   const handleUploadError = useCallback((error: string) => {
     toast({
@@ -115,7 +103,7 @@ export function DocumentUpload({
         config={config}
         onUploadComplete={handleUploadComplete}
         onUploadError={handleUploadError}
-        disabled={disabled || loading || uploading}
+        disabled={disabled || uploading}
       />
     </div>
   );

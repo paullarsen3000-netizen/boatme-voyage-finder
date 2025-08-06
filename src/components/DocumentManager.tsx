@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,10 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { DocumentUpload } from '@/components/DocumentUpload';
-import { useDocuments } from '@/hooks/useDocuments';
 import { useToast } from '@/hooks/use-toast';
 import { FileText, CheckCircle, Clock, AlertTriangle, Upload, AlertCircle } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 type DocumentType = Database['public']['Enums']['document_type'];
 type Document = Database['public']['Tables']['documents']['Row'];
@@ -18,6 +20,11 @@ interface RequiredDocument {
   title: string;
   description: string;
   required: boolean;
+}
+
+interface DocumentManagerProps {
+  initialDocuments?: Document[];
+  onDocumentsChange?: (documents: Document[]) => void;
 }
 
 const REQUIRED_DOCUMENTS: RequiredDocument[] = [
@@ -53,14 +60,72 @@ const REQUIRED_DOCUMENTS: RequiredDocument[] = [
   }
 ];
 
-export function DocumentManager() {
-  const { documents, loading, error, refetch } = useDocuments();
+export function DocumentManager({ 
+  initialDocuments = [], 
+  onDocumentsChange 
+}: DocumentManagerProps) {
+  const { user } = useAuth();
   const { toast } = useToast();
+  const [documents, setDocuments] = useState<Document[]>(initialDocuments);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [activeUpload, setActiveUpload] = useState<DocumentType | null>(null);
 
+  // Update local state when initialDocuments change
   useEffect(() => {
-    refetch();
-  }, [refetch]);
+    setDocuments(initialDocuments);
+  }, [initialDocuments]);
+
+  const uploadDocument = async (file: File, documentType: DocumentType) => {
+    if (!user) throw new Error('User not authenticated');
+
+    setLoading(true);
+    
+    try {
+      // Upload file to storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${documentType}-${Date.now()}.${fileExt}`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('documents')
+        .getPublicUrl(fileName);
+
+      // Save document record to database
+      const { data: docData, error: docError } = await supabase
+        .from('documents')
+        .insert({
+          user_id: user.id,
+          type: documentType,
+          url: publicUrl,
+          verified: false
+        })
+        .select()
+        .single();
+
+      if (docError) throw docError;
+
+      // Update local state
+      const updatedDocuments = [...documents, docData];
+      setDocuments(updatedDocuments);
+      onDocumentsChange?.(updatedDocuments);
+
+      return { data: docData, error: null };
+    } catch (err) {
+      return { 
+        data: null, 
+        error: err instanceof Error ? err.message : 'Upload failed' 
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getDocumentStatus = (docType: DocumentType) => {
     const doc = documents.find(d => d.type === docType);
@@ -113,9 +178,19 @@ export function DocumentManager() {
     }
   };
 
-  const handleUploadSuccess = (documentType: DocumentType) => {
+  const handleUploadSuccess = async (documentType: DocumentType, file: File) => {
+    const result = await uploadDocument(file, documentType);
+    
+    if (result.error) {
+      toast({
+        title: "Upload failed",
+        description: result.error,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setActiveUpload(null);
-    refetch();
     toast({
       title: "Document uploaded",
       description: "Your document has been uploaded and is being reviewed.",
@@ -126,7 +201,7 @@ export function DocumentManager() {
     setActiveUpload(documentType);
   };
 
-  if (loading) {
+  if (loading && documents.length === 0) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-20 w-full" />
@@ -207,7 +282,7 @@ export function DocumentManager() {
                   {isUploading ? (
                     <DocumentUpload
                       documentType={docConfig.type}
-                      onUploadSuccess={() => handleUploadSuccess(docConfig.type)}
+                      onUploadSuccess={(file) => handleUploadSuccess(docConfig.type, file)}
                     />
                   ) : (
                     <div className="flex items-center justify-between">
@@ -261,7 +336,7 @@ export function DocumentManager() {
                   {isUploading ? (
                     <DocumentUpload
                       documentType={docConfig.type}
-                      onUploadSuccess={() => handleUploadSuccess(docConfig.type)}
+                      onUploadSuccess={(file) => handleUploadSuccess(docConfig.type, file)}
                     />
                   ) : (
                     <div className="flex items-center justify-between">
