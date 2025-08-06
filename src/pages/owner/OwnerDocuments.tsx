@@ -14,37 +14,63 @@ type DocumentType = Database['public']['Tables']['documents']['Row'];
 export default function OwnerDocuments() {
   const { user } = useAuth();
   const [documents, setDocuments] = useState<DocumentType[]>([]);
+  const [docs, setDocs] = useState<{ name: string; url: string }[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchDocuments = async () => {
+    const loadDocs = async () => {
       if (!user) return;
       
       setLoading(true);
       setError(null);
       
       try {
-        const { data, error } = await supabase
+        // Fetch from documents table
+        const { data: dbDocs, error: dbError } = await supabase
           .from('documents')
           .select('*')
           .eq('user_id', user.id)
           .order('uploaded_at', { ascending: false });
         
-        if (error) {
-          setError(error.message);
+        if (dbError) {
+          setError(dbError.message);
         } else {
-          setDocuments(data || []);
+          setDocuments(dbDocs || []);
+        }
+
+        // Also fetch from storage
+        const { data: files, error: listErr } = await supabase
+          .storage
+          .from('documents')
+          .list(`${user.id}/`, { limit: 100 });
+        
+        if (listErr) {
+          console.error('Storage list error:', listErr);
+        } else if (files) {
+          const docsWithUrls = files.map(f => {
+            const { data: { publicUrl } } = supabase
+              .storage
+              .from('documents')
+              .getPublicUrl(`${user.id}/${f.name}`);
+            return { name: f.name, url: publicUrl };
+          });
+          setDocs(docsWithUrls);
         }
       } catch (err) {
         setError('Failed to fetch documents');
+        console.error('Error loading documents:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDocuments();
-  }, []); // Empty deps array prevents re-fetch loops
+    loadDocs();
+  }, [user]);
+
+  const handleDocumentsChange = (updatedDocuments: DocumentType[]) => {
+    setDocuments(updatedDocuments);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -71,10 +97,39 @@ export default function OwnerDocuments() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : (
-          <DocumentManager 
-            initialDocuments={documents} 
-            onDocumentsChange={setDocuments}
-          />
+          <div className="space-y-8">
+            <DocumentManager 
+              initialDocuments={documents} 
+              onDocumentsChange={handleDocumentsChange}
+            />
+            
+            {docs.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-xl font-semibold mb-4">Additional Documents</h2>
+                <div className="bg-white rounded-lg border p-6">
+                  {docs.length > 0 ? (
+                    <ul className="space-y-2">
+                      {docs.map(doc => (
+                        <li key={doc.name} className="flex items-center justify-between">
+                          <span className="truncate">{doc.name}</span>
+                          <a 
+                            href={doc.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-primary hover:underline"
+                          >
+                            View
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="text-center py-8">No additional documents uploaded.</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </main>
 
