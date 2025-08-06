@@ -1,4 +1,5 @@
-import { useState } from "react"
+
+import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -11,6 +12,7 @@ import { Header } from "@/components/Header"
 import { Footer } from "@/components/Footer"
 import { Link } from "react-router-dom"
 import { useCourses } from "@/hooks/useCourses"
+import { useDebounce } from "@/hooks/useDebounce"
 
 interface CourseFilters {
   location?: string;
@@ -23,11 +25,15 @@ export default function SkipperCourses() {
   const [selectedProvince, setSelectedProvince] = useState("")
   const [priceRange, setPriceRange] = useState("")
 
+  // Debounce search term to prevent excessive API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 300)
+
   const provinces = ["Western Cape", "KwaZulu-Natal", "Gauteng", "Eastern Cape", "Free State", "Limpopo", "Mpumalanga", "Northern Cape", "North West"]
   
-  // Create filters for the hook
-  const filters: CourseFilters = {
-    location: searchTerm || selectedProvince !== "all-provinces" ? (selectedProvince || searchTerm) : undefined,
+  // Memoize filters to prevent unnecessary re-renders
+  const filters: CourseFilters = useMemo(() => ({
+    location: debouncedSearchTerm || (selectedProvince !== "all-provinces" && selectedProvince) ? 
+      (selectedProvince || debouncedSearchTerm) : undefined,
     priceMin: priceRange === "under-3000" ? undefined : 
              priceRange === "3000-5000" ? 3000 :
              priceRange === "5000-8000" ? 5000 :
@@ -35,35 +41,41 @@ export default function SkipperCourses() {
     priceMax: priceRange === "under-3000" ? 3000 :
              priceRange === "3000-5000" ? 5000 :
              priceRange === "5000-8000" ? 8000 : undefined
-  }
+  }), [debouncedSearchTerm, selectedProvince, priceRange])
   
   const { courses, loading, error } = useCourses(filters)
 
   // Transform Supabase course data to match the expected format
-  const transformedCourses = courses
-    .filter(course => {
-      const matchesSearch = searchTerm === "" || 
-        course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.location.toLowerCase().includes(searchTerm.toLowerCase())
-      return matchesSearch
-    })
-    .map(course => ({
-      id: course.id,
-      title: course.title,
-      provider: "Course Provider", // Could come from join with users table
-      location: course.location,
-      province: course.location.split(',').pop()?.trim() || "Unknown",
-      category: "R", // Could be added to schema
-      price: Number(course.price),
-      duration: "2 days", // Could be added to schema
-      nextDate: "2024-03-01", // Could come from available_dates
-      rating: 4.7,
-      reviewCount: 0,
-      image: "/placeholder.svg",
-      description: course.description || "",
-      includes: ["Theory course", "Practical training", "Certificate"],
-      type: "theory-practical"
-    }))
+  const transformedCourses = useMemo(() => 
+    courses
+      .filter(course => {
+        // Only filter by search term on title/location if not using debounced search
+        if (debouncedSearchTerm !== searchTerm) {
+          const matchesSearch = searchTerm === "" || 
+            course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            course.location.toLowerCase().includes(searchTerm.toLowerCase())
+          return matchesSearch
+        }
+        return true
+      })
+      .map(course => ({
+        id: course.id,
+        title: course.title,
+        provider: "Course Provider", // Could come from join with users table
+        location: course.location,
+        province: course.location.split(',').pop()?.trim() || "Unknown",
+        category: "R", // Could be added to schema
+        price: Number(course.price),
+        duration: "2 days", // Could be added to schema
+        nextDate: "2024-03-01", // Could come from available_dates
+        rating: 4.7,
+        reviewCount: 0,
+        image: "/placeholder.svg",
+        description: course.description || "",
+        includes: ["Theory course", "Practical training", "Certificate"],
+        type: "theory-practical"
+      }))
+  , [courses, searchTerm, debouncedSearchTerm])
 
   return (
     <div className="min-h-screen bg-background">
@@ -103,7 +115,6 @@ export default function SkipperCourses() {
                 ))}
               </SelectContent>
             </Select>
-
 
             <Select value={priceRange} onValueChange={setPriceRange}>
               <SelectTrigger>
