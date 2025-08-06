@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -83,7 +82,7 @@ const mockData = {
 
 export default function OwnerDashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState("month")
-  const { user } = useAuth()
+  const { user, session } = useAuth()
   
   // Compute the time-of-day greeting
   const hours = new Date().getHours()
@@ -100,6 +99,16 @@ export default function OwnerDashboard() {
   // Extract first name; fall back to full name or email if unavailable
   const fullName = user?.user_metadata?.first_name || user?.user_metadata?.name || user?.email || ''
   const firstName = fullName.split(' ')[0]
+
+  // Extract and format the real "member since" date
+  const rawDate = session?.user?.created_at
+  const memberSince = rawDate
+    ? new Date(rawDate).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    : '—'
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -140,7 +149,7 @@ export default function OwnerDashboard() {
                 {mockData.owner.verificationStatus === "approved" ? "Verified Owner" : "Pending Verification"}
               </Badge>
               <p className="text-sm text-muted-foreground">
-                Member since {new Date(mockData.owner.joinDate).toLocaleDateString()}
+                Member since {memberSince}
               </p>
             </div>
           </div>
