@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -21,6 +22,7 @@ import {
 import { Link } from "react-router-dom"
 import { Header } from "@/components/Header"
 import { Footer } from "@/components/Footer"
+import { useAuth } from '@/contexts/AuthContext'
 
 const mockData = {
   owner: {
@@ -81,6 +83,23 @@ const mockData = {
 
 export default function OwnerDashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState("month")
+  const { user } = useAuth()
+  
+  // Compute the time-of-day greeting
+  const hours = new Date().getHours()
+  let timeGreeting = 'Hello'
+
+  if (hours < 12) {
+    timeGreeting = 'Good morning'
+  } else if (hours < 18) {
+    timeGreeting = 'Good afternoon'
+  } else {
+    timeGreeting = 'Good evening'
+  }
+
+  // Extract first name; fall back to full name or email if unavailable
+  const fullName = user?.user_metadata?.first_name || user?.user_metadata?.name || user?.email || ''
+  const firstName = fullName.split(' ')[0]
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -110,7 +129,7 @@ export default function OwnerDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-brand font-bold text-primary">
-                Welcome back, {mockData.owner.name}!
+                {timeGreeting}, {firstName}!
               </h1>
               <p className="text-muted-foreground mt-1">
                 Manage your boat listings and track your rental business
