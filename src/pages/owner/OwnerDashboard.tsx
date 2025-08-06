@@ -22,6 +22,7 @@ import { Link } from "react-router-dom"
 import { Header } from "@/components/Header"
 import { Footer } from "@/components/Footer"
 import { useAuth } from '@/contexts/AuthContext'
+import { formatDate } from '@/utils/formatDate'
 
 const mockData = {
   owner: {
@@ -102,13 +103,7 @@ export default function OwnerDashboard() {
 
   // Extract and format the real "member since" date
   const rawDate = session?.user?.created_at
-  const memberSince = rawDate
-    ? new Date(rawDate).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-    : '—'
+  const memberSince = rawDate ? formatDate(rawDate) : '—'
 
   const getStatusColor = (status: string) => {
     switch (status) {

@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,6 +12,7 @@ import { Footer } from "@/components/Footer"
 import { Link } from "react-router-dom"
 import { useCourses } from "@/hooks/useCourses"
 import { useDebounce } from "@/hooks/useDebounce"
+import { formatDate } from '@/utils/formatDate'
 
 interface CourseFilters {
   location?: string;
@@ -193,7 +193,7 @@ export default function SkipperCourses() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center text-sm">
                       <Calendar className="w-4 h-4 mr-1" />
-                      Next: {new Date(course.nextDate).toLocaleDateString()}
+                      Next: {formatDate(course.nextDate)}
                     </div>
                     <div className="flex items-center text-sm">
                       <Clock className="w-4 h-4 mr-1" />
