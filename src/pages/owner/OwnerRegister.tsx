@@ -64,36 +64,37 @@ export default function OwnerRegister() {
       if (!user?.id) return
 
       try {
-        const { data: files, error } = await supabase
-          .storage
-          .from('documents')
-          .list(`${user.id}/`, { limit: 100, offset: 0 })
+        // Query owner_documents table instead of storage directly
+        const { data: docs, error: dbError } = await supabase
+          .from('owner_documents')
+          .select('*')
+          .eq('owner_id', user.id)
 
-        if (error) {
-          console.error('Error listing docs:', error)
+        if (dbError) {
+          console.error('Error loading docs from DB:', dbError)
           return
         }
 
-        if (!files) return
+        if (!docs) return
 
         const newFormData = { ...formData }
         
-        for (const file of files) {
+        for (const doc of docs) {
           const { data: urlData } = supabase
             .storage
-            .from('documents')
-            .getPublicUrl(`${user.id}/${file.name}`)
+            .from('owner-documents')
+            .getPublicUrl(doc.file_path)
 
-          const doc = { name: file.name, url: urlData.publicUrl }
+          const docObj = { name: doc.file_name, url: urlData.publicUrl }
 
-          if (file.name.startsWith('idDocument-')) {
-            newFormData.idDocument = doc
-          } else if (file.name.startsWith('proofOwnership-')) {
-            newFormData.proofOwnership = doc
-          } else if (file.name.startsWith('cofDocument-')) {
-            newFormData.cofDocument = doc
-          } else if (file.name.startsWith('insuranceDocument-')) {
-            newFormData.insuranceDocument = doc
+          if (doc.document_type === 'idDocument') {
+            newFormData.idDocument = docObj
+          } else if (doc.document_type === 'proofOwnership') {
+            newFormData.proofOwnership = docObj
+          } else if (doc.document_type === 'cofDocument') {
+            newFormData.cofDocument = docObj
+          } else if (doc.document_type === 'insuranceDocument') {
+            newFormData.insuranceDocument = docObj
           }
         }
         
@@ -129,20 +130,40 @@ export default function OwnerRegister() {
 
     try {
       const fileName = `${field}-${Date.now()}-${file.name}`
+      const filePath = `${user.id}/${fileName}`
+      
       const { data, error: uploadError } = await supabase
         .storage
-        .from('documents')
-        .upload(`${user.id}/${fileName}`, file, {
+        .from('owner-documents')
+        .upload(filePath, file, {
           cacheControl: '3600',
           upsert: true,
         })
 
       if (uploadError) throw uploadError
 
+      // Get public URL
       const { data: urlData } = supabase
         .storage
-        .from('documents')
+        .from('owner-documents')
         .getPublicUrl(data.path)
+
+      // Save metadata to database
+      const { error: dbError } = await supabase
+        .from('owner_documents')
+        .upsert({
+          owner_id: user.id,
+          document_type: field as string,
+          file_name: file.name,
+          file_path: data.path
+        }, { 
+          onConflict: 'owner_id,document_type' 
+        })
+
+      if (dbError) {
+        console.error('Database error:', dbError)
+        // Still update UI even if DB save fails
+      }
 
       setFormData(prev => ({ 
         ...prev, 

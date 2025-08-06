@@ -30,7 +30,7 @@ export default function OwnerDocuments() {
       setError(null);
       
       try {
-        // Fetch from documents table
+        // Fetch from documents table (for DocumentManager)
         const { data: dbDocs, error: dbError } = await supabase
           .from('documents')
           .select('*')
@@ -43,36 +43,33 @@ export default function OwnerDocuments() {
           setDocuments(dbDocs || []);
         }
 
-        // Fetch and categorize from storage
-        const { data: files, error: listErr } = await supabase
-          .storage
-          .from('owner-documents')
-          .list(`${user.id}/`, { limit: 100 });
-        
-        if (listErr) {
-          console.error('Storage list error:', listErr);
-        } else if (files) {
-          const docs = files.map(f => {
+        // Fetch from owner_documents table (for registration docs)
+        const { data: ownerDocs, error: ownerDocsError } = await supabase
+          .from('owner_documents')
+          .select('*')
+          .eq('owner_id', user.id);
+
+        if (ownerDocsError) {
+          console.error('Error fetching owner documents:', ownerDocsError);
+        } else if (ownerDocs) {
+          // Get public URLs for each document
+          const enrichedDocs = ownerDocs.map(doc => {
             const { data: { publicUrl } } = supabase
               .storage
               .from('owner-documents')
-              .getPublicUrl(`${user.id}/${f.name}`);
-            return { name: f.name, url: publicUrl };
+              .getPublicUrl(doc.file_path);
+            return { ...doc, url: publicUrl };
           });
 
-          // Map each file to its field by prefix
-          setIdDocument(docs.find(d => d.name.startsWith('idDocument-')) || null);
-          setProofOwnership(docs.find(d => d.name.startsWith('proofOwnership-')) || null);
-          setCofDocument(docs.find(d => d.name.startsWith('cofDocument-')) || null);
-          setInsuranceDocument(docs.find(d => d.name.startsWith('insuranceDocument-')) || null);
+          // Map each document to its corresponding state
+          setIdDocument(enrichedDocs.find(d => d.document_type === 'idDocument') || null);
+          setProofOwnership(enrichedDocs.find(d => d.document_type === 'proofOwnership') || null);
+          setCofDocument(enrichedDocs.find(d => d.document_type === 'cofDocument') || null);
+          setInsuranceDocument(enrichedDocs.find(d => d.document_type === 'insuranceDocument') || null);
 
-          // Everything else goes to "Additional"
-          setAdditionalDocs(docs.filter(d =>
-            !d.name.startsWith('idDocument-') &&
-            !d.name.startsWith('proofOwnership-') &&
-            !d.name.startsWith('cofDocument-') &&
-            !d.name.startsWith('insuranceDocument-')
-          ));
+          // Additional docs are those that don't match the required types
+          const requiredTypes = ['idDocument', 'proofOwnership', 'cofDocument', 'insuranceDocument'];
+          setAdditionalDocs(enrichedDocs.filter(d => !requiredTypes.includes(d.document_type)));
         }
       } catch (err) {
         setError('Failed to fetch documents');
@@ -138,7 +135,7 @@ export default function OwnerDocuments() {
                           rel="noopener noreferrer" 
                           className="text-primary hover:underline"
                         >
-                          {idDocument.name}
+                          {idDocument.name || idDocument.file_name}
                         </a>
                       ) : (
                         <span className="text-muted-foreground">Not uploaded</span>
@@ -159,7 +156,7 @@ export default function OwnerDocuments() {
                           rel="noopener noreferrer" 
                           className="text-primary hover:underline"
                         >
-                          {proofOwnership.name}
+                          {proofOwnership.name || proofOwnership.file_name}
                         </a>
                       ) : (
                         <span className="text-muted-foreground">Not uploaded</span>
@@ -180,7 +177,7 @@ export default function OwnerDocuments() {
                           rel="noopener noreferrer" 
                           className="text-primary hover:underline"
                         >
-                          {cofDocument.name}
+                          {cofDocument.name || cofDocument.file_name}
                         </a>
                       ) : (
                         <span className="text-muted-foreground">Not uploaded</span>
@@ -201,7 +198,7 @@ export default function OwnerDocuments() {
                           rel="noopener noreferrer" 
                           className="text-primary hover:underline"
                         >
-                          {insuranceDocument.name}
+                          {insuranceDocument.name || insuranceDocument.file_name}
                         </a>
                       ) : (
                         <span className="text-muted-foreground">Not uploaded</span>
@@ -218,8 +215,8 @@ export default function OwnerDocuments() {
                 <div className="bg-white rounded-lg border p-6">
                   <ul className="space-y-2">
                     {additionalDocs.map(doc => (
-                      <li key={doc.name} className="flex items-center justify-between">
-                        <span className="truncate">{doc.name}</span>
+                      <li key={doc.id} className="flex items-center justify-between">
+                        <span className="truncate">{doc.file_name}</span>
                         <a 
                           href={doc.url} 
                           target="_blank" 
