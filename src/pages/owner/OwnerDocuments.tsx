@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 import { useOwnerDocuments } from '@/hooks/useOwnerDocuments';
+import { ResetOwnerButton } from '@/components/admin/ResetOwnerButton';
 
 type DocumentType = Database['public']['Tables']['documents']['Row'];
 type OwnerDocumentType = Database['public']['Tables']['owner_documents']['Row'];
@@ -80,12 +81,20 @@ export default function OwnerDocuments() {
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-brand font-bold text-primary mb-4">
-            Document Management
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Upload and manage your verification documents to activate your boat listings
-          </p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-brand font-bold text-primary mb-4">
+                Document Management
+              </h1>
+              <p className="text-lg text-muted-foreground">
+                Upload and manage your verification documents to activate your boat listings
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground mb-2">Testing utilities:</p>
+              <ResetOwnerButton />
+            </div>
+          </div>
         </div>
 
         {loading ? (
