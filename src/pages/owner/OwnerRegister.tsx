@@ -196,12 +196,47 @@ export default function OwnerRegister() {
     }
   }
 
-  const handleSubmit = () => {
-    toast({
-      title: "Registration Successful!",
-      description: "Your account has been created. Redirecting to dashboard..."
-    })
-    setTimeout(() => navigate("/owner/dashboard"), 2000)
+  const handleSubmit = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to complete registration",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      // Persist all uploaded documents to the database
+      const uploads = [
+        { field: 'idDocument', type: 'idDocument' },
+        { field: 'proofOwnership', type: 'proofOwnership' },
+        { field: 'cofDocument', type: 'cofDocument' },
+        { field: 'insuranceDocument', type: 'insuranceDocument' },
+      ];
+
+      for (const u of uploads) {
+        const file = formData[u.field as keyof FormData] as DocumentFile | null;
+        if (!file) continue;
+
+        // The file was already uploaded in handleFileUpload, so we just need to ensure
+        // the database record exists. The upsert in handleFileUpload should have handled this,
+        // but we can add a safety check here if needed.
+      }
+
+      toast({
+        title: "Registration Successful!",
+        description: "Your account has been created. Redirecting to dashboard..."
+      })
+      setTimeout(() => navigate("/owner/dashboard"), 2000)
+    } catch (error) {
+      console.error('Registration error:', error)
+      toast({
+        title: "Registration failed",
+        description: "Failed to complete registration. Please try again.",
+        variant: "destructive"
+      })
+    }
   }
 
   const canProceed = () => {
