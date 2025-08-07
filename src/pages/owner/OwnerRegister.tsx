@@ -5,13 +5,14 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
-import { Upload, FileText, CheckCircle, AlertCircle } from "lucide-react"
+import { FileText, CheckCircle, AlertCircle } from "lucide-react"
 import { Header } from "@/components/Header"
 import { Footer } from "@/components/Footer"
 import { useNavigate } from "react-router-dom"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
+import { DocumentUpload } from '@/components/DocumentUpload'
 
 const steps = [
   { id: 1, title: "Personal Details", description: "Basic information" },
@@ -31,10 +32,10 @@ interface FormData {
   phone: string
   password: string
   confirmPassword: string
-  idDocument: DocumentFile | null
-  proofOwnership: DocumentFile | null
-  cofDocument: DocumentFile | null
-  insuranceDocument: DocumentFile | null
+  idDocument: boolean
+  proofOwnership: boolean
+  cofDocument: boolean
+  insuranceDocument: boolean
   agreementSigned: boolean
   legalName: string
 }
@@ -47,10 +48,10 @@ export default function OwnerRegister() {
     phone: "",
     password: "",
     confirmPassword: "",
-    idDocument: null,
-    proofOwnership: null,
-    cofDocument: null,
-    insuranceDocument: null,
+    idDocument: false,
+    proofOwnership: false,
+    cofDocument: false,
+    insuranceDocument: false,
     agreementSigned: false,
     legalName: ""
   })
@@ -64,7 +65,6 @@ export default function OwnerRegister() {
       if (!user?.id) return
 
       try {
-        // Query owner_documents table instead of storage directly
         const { data: docs, error: dbError } = await supabase
           .from('owner_documents')
           .select('*')
@@ -80,21 +80,14 @@ export default function OwnerRegister() {
         const newFormData = { ...formData }
         
         for (const doc of docs) {
-          const { data: urlData } = supabase
-            .storage
-            .from('owner-documents')
-            .getPublicUrl(doc.file_path)
-
-          const docObj = { name: doc.file_name, url: urlData.publicUrl }
-
           if (doc.document_type === 'idDocument') {
-            newFormData.idDocument = docObj
+            newFormData.idDocument = true
           } else if (doc.document_type === 'proofOwnership') {
-            newFormData.proofOwnership = docObj
+            newFormData.proofOwnership = true
           } else if (doc.document_type === 'cofDocument') {
-            newFormData.cofDocument = docObj
+            newFormData.cofDocument = true
           } else if (doc.document_type === 'insuranceDocument') {
-            newFormData.insuranceDocument = docObj
+            newFormData.insuranceDocument = true
           }
         }
         
@@ -107,18 +100,7 @@ export default function OwnerRegister() {
     loadDocs()
   }, [user?.id])
 
-  const handleFileUpload = async (field: keyof FormData, file: File | null) => {
-    if (!file) return
-    
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: "Please upload files smaller than 10MB",
-        variant: "destructive"
-      })
-      return
-    }
-
+  const handleDocumentUpload = async (documentType: string, file: File) => {
     if (!user?.id) {
       toast({
         title: "Authentication required",
@@ -129,7 +111,7 @@ export default function OwnerRegister() {
     }
 
     try {
-      const fileName = `${field}-${Date.now()}-${file.name}`
+      const fileName = `${documentType}-${Date.now()}-${file.name}`
       const filePath = `${user.id}/${fileName}`
       
       const { data, error: uploadError } = await supabase
@@ -142,18 +124,12 @@ export default function OwnerRegister() {
 
       if (uploadError) throw uploadError
 
-      // Get public URL
-      const { data: urlData } = supabase
-        .storage
-        .from('owner-documents')
-        .getPublicUrl(data.path)
-
       // Save metadata to database
       const { error: dbError } = await supabase
         .from('owner_documents')
         .upsert({
           owner_id: user.id,
-          document_type: field as string,
+          document_type: documentType,
           file_name: file.name,
           file_path: data.path
         }, { 
@@ -162,12 +138,12 @@ export default function OwnerRegister() {
 
       if (dbError) {
         console.error('Database error:', dbError)
-        // Still update UI even if DB save fails
+        throw dbError
       }
 
       setFormData(prev => ({ 
         ...prev, 
-        [field]: { name: file.name, url: urlData.publicUrl } 
+        [documentType]: true 
       }))
 
       toast({
@@ -207,23 +183,6 @@ export default function OwnerRegister() {
     }
 
     try {
-      // Persist all uploaded documents to the database
-      const uploads = [
-        { field: 'idDocument', type: 'idDocument' },
-        { field: 'proofOwnership', type: 'proofOwnership' },
-        { field: 'cofDocument', type: 'cofDocument' },
-        { field: 'insuranceDocument', type: 'insuranceDocument' },
-      ];
-
-      for (const u of uploads) {
-        const file = formData[u.field as keyof FormData] as DocumentFile | null;
-        if (!file) continue;
-
-        // The file was already uploaded in handleFileUpload, so we just need to ensure
-        // the database record exists. The upsert in handleFileUpload should have handled this,
-        // but we can add a safety check here if needed.
-      }
-
       toast({
         title: "Registration Successful!",
         description: "Your account has been created. Redirecting to dashboard..."
@@ -252,54 +211,6 @@ export default function OwnerRegister() {
     }
   }
 
-  const FileUploadCard = ({ 
-    title, 
-    description, 
-    field, 
-    file, 
-    required = true 
-  }: { 
-    title: string
-    description: string
-    field: keyof FormData
-    file: DocumentFile | null
-    required?: boolean
-  }) => (
-    <Card className="border-2 border-dashed border-gray-300 hover:border-primary/50 transition-colors">
-      <CardContent className="p-6">
-        <div className="text-center">
-          {file ? (
-            <div className="flex items-center justify-center space-x-2 text-green-600">
-              <CheckCircle className="w-6 h-6" />
-              <a 
-                href={file.url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="font-medium underline hover:no-underline"
-              >
-                {file.name}
-              </a>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <Upload className="w-8 h-8 mx-auto text-gray-400" />
-              <div>
-                <p className="font-medium">{title}</p>
-                <p className="text-sm text-muted-foreground">{description}</p>
-                {required && <p className="text-xs text-red-500">Required</p>}
-              </div>
-            </div>
-          )}
-          <input
-            type="file"
-            accept=".pdf,.jpg,.jpeg,.png"
-            onChange={(e) => handleFileUpload(field, e.target.files?.[0] || null)}
-            className="mt-4 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-          />
-        </div>
-      </CardContent>
-    </Card>
-  )
 
   return (
     <div className="min-h-screen bg-background">
@@ -404,31 +315,57 @@ export default function OwnerRegister() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FileUploadCard
-                      title="ID Document"
-                      description="Valid South African ID or Passport"
-                      field="idDocument"
-                      file={formData.idDocument}
-                    />
-                    <FileUploadCard
-                      title="Proof of Ownership"
-                      description="Bill of Sale or Ownership Certificate"
-                      field="proofOwnership"
-                      file={formData.proofOwnership}
-                    />
-                    <FileUploadCard
-                      title="Certificate of Fitness (COF)"
-                      description="Valid COF for your vessel"
-                      field="cofDocument"
-                      file={formData.cofDocument}
-                    />
-                    <FileUploadCard
-                      title="Insurance Documents"
-                      description="Boat insurance policy (recommended)"
-                      field="insuranceDocument"
-                      file={formData.insuranceDocument}
-                      required={false}
-                    />
+                    <div className="relative">
+                      <DocumentUpload
+                        documentType="identity"
+                        onUploadSuccess={(file) => handleDocumentUpload('idDocument', file)}
+                        disabled={false}
+                      />
+                      {formData.idDocument && (
+                        <div className="absolute top-2 right-2">
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="relative">
+                      <DocumentUpload
+                        documentType="registration"
+                        onUploadSuccess={(file) => handleDocumentUpload('proofOwnership', file)}
+                        disabled={false}
+                      />
+                      {formData.proofOwnership && (
+                        <div className="absolute top-2 right-2">
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="relative">
+                      <DocumentUpload
+                        documentType="safety_certificate"
+                        onUploadSuccess={(file) => handleDocumentUpload('cofDocument', file)}
+                        disabled={false}
+                      />
+                      {formData.cofDocument && (
+                        <div className="absolute top-2 right-2">
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="relative">
+                      <DocumentUpload
+                        documentType="insurance"
+                        onUploadSuccess={(file) => handleDocumentUpload('insuranceDocument', file)}
+                        disabled={false}
+                      />
+                      {formData.insuranceDocument && (
+                        <div className="absolute top-2 right-2">
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
